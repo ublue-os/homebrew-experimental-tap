@@ -46,6 +46,14 @@ cask "winboat" do
     File.write("#{Dir.home}/.local/share/applications/winboat.desktop", desktop_file)
   end
 
+  caveats do
+    <<~EOS
+      Winboat requires the following dependencies to be installed:
+        - Docker (for running Windows containers)
+        - FreeRDP (for remote desktop protocol support)
+    EOS
+  end
+
   zap trash: [
     "~/.config/winboat",
     "~/.local/share/winboat",
