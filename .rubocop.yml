@@ -1,0 +1,34 @@
+AllCops:
+  NewCops: enable
+  Exclude:
+    - 'vendor/**/*'
+
+# Cask files naturally use kebab-case naming (e.g., bluefin-cli.rb)
+Naming/FileName:
+  Enabled: false
+
+# Cask DSL blocks can be legitimately long, especially for complex installations
+Metrics/BlockLength:
+  Exclude:
+    - 'Casks/**/*.rb'
+
+# Formula and Cask DSL blocks naturally have high cyclomatic complexity
+Metrics/CyclomaticComplexity:
+  Exclude:
+    - 'Formula/**/*.rb'
+    - 'Casks/**/*.rb'
+
+Metrics/PerceivedComplexity:
+  Exclude:
+    - 'Formula/**/*.rb'
+    - 'Casks/**/*.rb'
+
+Metrics/AbcSize:
+  Exclude:
+    - 'Formula/**/*.rb'
+    - 'Casks/**/*.rb'
+
+Metrics/MethodLength:
+  Exclude:
+    - 'Formula/**/*.rb'
+    - 'Casks/**/*.rb'
