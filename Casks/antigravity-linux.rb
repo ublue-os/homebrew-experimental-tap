@@ -3,7 +3,7 @@ cask "antigravity-linux" do
 
   version "1.11.2,6251250307170304"
   sha256 arm64_linux:  "501571c74e6629ca9d032d14b1ce21786089fd4b4af3af914ac4338249e0a71e",
-         x86_64_linux: "d064f7c88e16088af6af5c82416f370c8c39c96b3fb63c21d2fa3f0d86e7b6e5"
+         x86_64_linux: "d1b1115ae76c275c376ea660e1e4d2dc20eb3e72d6a206b096505b944a5f64b7"
 
   url "https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/#{version.csv.first}-#{version.csv.second}/linux-#{arch}/Antigravity.tar.gz",
       verified: "edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/"
