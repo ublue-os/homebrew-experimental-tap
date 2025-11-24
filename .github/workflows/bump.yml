@@ -19,22 +19,21 @@ jobs:
             echo "Homebrew not found, installing..."
             NONINTERACTIVE=1 /bin/bash -c \
               "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-              eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-
-              brew tap --force "${{ github.repository }}"
-
-              {
-                echo "HOMEBREW_PREFIX=$HOMEBREW_PREFIX"
-                echo "HOMEBREW_CELLAR=$HOMEBREW_CELLAR"
-                echo "HOMEBREW_REPOSITORY=$HOMEBREW_REPOSITORY"
-                echo "PATH=$PATH"
-                echo "MANPATH=$MANPATH"
-                echo "INFOPATH=$INFOPATH"
-              } >> "$GITHUB_ENV"
           else
             echo "Homebrew already installed"
           fi
+
+          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+          brew tap --force "${{ github.repository }}"
+
+          {
+            echo "HOMEBREW_PREFIX=$HOMEBREW_PREFIX"
+            echo "HOMEBREW_CELLAR=$HOMEBREW_CELLAR"
+            echo "HOMEBREW_REPOSITORY=$HOMEBREW_REPOSITORY"
+            echo "PATH=$PATH"
+            echo "MANPATH=$MANPATH"
+            echo "INFOPATH=$INFOPATH"
+          } >> "$GITHUB_ENV"
 
       - name: Configure git
         uses: Homebrew/actions/git-user-config@main
