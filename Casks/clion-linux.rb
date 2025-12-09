@@ -3,9 +3,9 @@ cask "clion-linux" do
        arm:   "-aarch64"
   os linux: "linux"
 
-  version "2025.2.5,252.28238.22"
-  sha256 x86_64_linux: "91474a3c35a9b3d50f43f0549098317b65aa881f2f80c3345f8dee7587d31f9e",
-         arm64_linux:  "bff9d778fdfa41dc69019f05b01a9f242caa4406432f63b9d599799790f62655"
+  version "2025.3,253.28294.335"
+  sha256 x86_64_linux: "b9daed1c33f2e4a93bf503e227cda5a9fbaa3129e064bb97d7c2bd1304a4a2a7",
+         arm64_linux:  "fa9235595791ae062fae9662287d570f9700e9a749f625273f837c43a33c8cdd"
 
   url "https://download.jetbrains.com/cpp/CLion-#{version.csv.first}#{arch}.tar.gz"
   name "CLion"
