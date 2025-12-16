@@ -1,5 +1,5 @@
 cask "bluefin-cli" do
-  version "2025-12-09-01-30-10"
+  version "2025-12-16-01-30-20"
   sha256 "fdc1a5ac6bfa48c710abe3ad9286ce1129cb7e4c3acb9978aaecf88157fbc6b4"
 
   url "https://github.com/ublue-os/packages/archive/refs/tags/homebrew-2025-10-28-01-29-41.tar.gz"
