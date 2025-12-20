@@ -1,23 +1,23 @@
 cask "bluefin-cli" do
-  version "0.0.2"
+  version "0.0.3"
 
   on_arm do
     on_linux do
-      sha256 "5294bbb262aa80fd20d17e00295bf1a2c770f32b1cf1d1ee82b80ba448716e94"
+      sha256 "1fdad74c832806613613a0111d9ffd465bd3bfd9aa95595ac03378712f877917"
       url "https://github.com/hanthor/bluefin-cli/releases/download/v#{version}/bluefin-cli_#{version}_linux_arm64.tar.gz"
     end
     on_macos do
-      sha256 "cbcab08545ac221acea714bfbfff0380762c08f6884d1c3eaed40e309ba3ea7f"
+      sha256 "ef6947d4239740ddf9aee73cfe28c1dfea43ee643ec3745b457e1e7889f7832c"
       url "https://github.com/hanthor/bluefin-cli/releases/download/v#{version}/bluefin-cli_#{version}_darwin_arm64.tar.gz"
     end
   end
   on_intel do
     on_linux do
-      sha256 "e6fec4f0366d5526f0bb7ab551b17243414deb19bbbecfdc7bd06c91f9cdc061"
+      sha256 "f6db1ea6bf99fbf94ca8e30ba08175d2e69ba86765a88fccca8b0d3a73985b3a"
       url "https://github.com/hanthor/bluefin-cli/releases/download/v#{version}/bluefin-cli_#{version}_linux_amd64.tar.gz"
     end
     on_macos do
-      sha256 "cb6f2f7539dac967b036328eb7feefb0ba931af3b31d643c0491b2a11c5977a9"
+      sha256 "21b064950b96fb5f60db5b5ed4dd764115bbb35c61c6a3c292e6bb7bcf99df2c"
       url "https://github.com/hanthor/bluefin-cli/releases/download/v#{version}/bluefin-cli_#{version}_darwin_amd64.tar.gz"
     end
   end
