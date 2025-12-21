@@ -19,6 +19,8 @@ class Libgda < Formula
   depends_on "glib"
   depends_on "iso-codes"
   depends_on "json-glib"
+  depends_on "libsecret"
+  depends_on "libsoup"
   depends_on "libxml2"
   depends_on "libxslt"
   depends_on "openldap"
@@ -40,6 +42,6 @@ class Libgda < Formula
   end
 
   test do
-    system "#{bin}/gda-sql-6.0", "--version"
+    system "#{bin}/gda-sql-6.0", "--help"
   end
 end
