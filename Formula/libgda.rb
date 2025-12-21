@@ -26,7 +26,7 @@ class Libgda < Formula
   depends_on "openldap"
   depends_on "readline"
   depends_on "sqlite"
-  uses_from_macos "gettext"
+  depends_on "gettext"
   uses_from_macos "ncurses"
 
   def install
