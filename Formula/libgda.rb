@@ -44,17 +44,4 @@ class Libgda < Formula
   test do
     system "#{bin}/gda-sql-6.0", "--help"
   end
-
-  def caveats
-    <<~EOS
-      To use libgda with GNOME Shell extensions, you must configure your environment
-      so that the system can find the libraries and introspection files.
-
-      Run the following commands to configure this for your user session (requires logout):
-
-        mkdir -p ~/.config/environment.d
-        echo 'GI_TYPELIB_PATH="#{HOMEBREW_PREFIX}/lib/girepository-1.0:${GI_TYPELIB_PATH}"' > ~/.config/environment.d/homebrew-libgda.conf
-        echo 'LD_LIBRARY_PATH="#{HOMEBREW_PREFIX}/lib:${LD_LIBRARY_PATH}"' >> ~/.config/environment.d/homebrew-libgda.conf
-    EOS
-  end
 end
