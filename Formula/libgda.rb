@@ -20,8 +20,11 @@ class Libgda < Formula
   depends_on "iso-codes"
   depends_on "json-glib"
   depends_on "libxml2"
+  depends_on "libxslt"
   depends_on "readline"
   depends_on "sqlite"
+  uses_from_macos "gettext"
+  uses_from_macos "ncurses"
 
   def install
     mkdir "build" do
