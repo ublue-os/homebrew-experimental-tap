@@ -21,12 +21,17 @@ class Libgda < Formula
   depends_on "json-glib"
   depends_on "libxml2"
   depends_on "libxslt"
+  depends_on "openldap"
   depends_on "readline"
   depends_on "sqlite"
   uses_from_macos "gettext"
   uses_from_macos "ncurses"
 
   def install
+    ENV.prepend_path "CPATH", Formula["glib"].opt_include/"glib-2.0"
+    ENV.prepend_path "CPATH", Formula["glib"].opt_lib/"glib-2.0/include"
+    ENV.prepend_path "CPATH", Formula["libxml2"].opt_include/"libxml2"
+
     mkdir "build" do
       system "meson", *std_meson_args, ".."
       system "ninja", "install", "-v"
