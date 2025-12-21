@@ -17,6 +17,7 @@ class Libgda < Formula
   depends_on "pkg-config" => :build
   depends_on "vala" => :build
   depends_on "glib"
+  depends_on "json-glib"
   depends_on "libxml2"
   depends_on "readline"
   depends_on "sqlite"
