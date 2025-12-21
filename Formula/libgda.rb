@@ -16,6 +16,7 @@ class Libgda < Formula
   depends_on "ninja" => :build
   depends_on "pkg-config" => :build
   depends_on "vala" => :build
+  depends_on "gettext"
   depends_on "glib"
   depends_on "iso-codes"
   depends_on "json-glib"
@@ -26,7 +27,6 @@ class Libgda < Formula
   depends_on "openldap"
   depends_on "readline"
   depends_on "sqlite"
-  depends_on "gettext"
   uses_from_macos "ncurses"
 
   def install
