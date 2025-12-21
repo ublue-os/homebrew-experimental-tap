@@ -31,6 +31,7 @@ class Libgda < Formula
     ENV.prepend_path "CPATH", Formula["glib"].opt_include/"glib-2.0"
     ENV.prepend_path "CPATH", Formula["glib"].opt_lib/"glib-2.0/include"
     ENV.prepend_path "CPATH", Formula["libxml2"].opt_include/"libxml2"
+    ENV.prepend_path "XDG_DATA_DIRS", Formula["glib"].opt_share
 
     mkdir "build" do
       system "meson", *std_meson_args, ".."
