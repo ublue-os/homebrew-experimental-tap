@@ -34,12 +34,12 @@ class Libgda < Formula
     ENV.prepend_path "XDG_DATA_DIRS", Formula["glib"].opt_share
 
     mkdir "build" do
-      system "meson", *std_meson_args, ".."
+      system "meson", *std_meson_args, "-Dtools=true", "-Dexperimental=true", ".."
       system "ninja", "install", "-v"
     end
   end
 
   test do
-    system "#{bin}/gda-sql", "--version"
+    system "#{bin}/gda-sql-6.0", "--version"
   end
 end
