@@ -40,9 +40,9 @@ jobs:
             echo "Checking for latest GitHub release..."
             TARGET_TAG=$(gh release view --repo hanthor/bluefin-cli --json tagName --jq .tagName)
           fi
-          
+
           echo "Target tag: $TARGET_TAG"
-          
+
           # Clean version (remove v)
           CLEAN_VERSION="${TARGET_TAG#v}"
           echo "latest_version_clean=$CLEAN_VERSION" >> "$GITHUB_OUTPUT"
@@ -56,9 +56,9 @@ jobs:
           if [ "$TARGET_TAG" != "$CURRENT_TAG" ]; then
             echo "needs_update=true" >> "$GITHUB_OUTPUT"
             echo "Update needed: $CURRENT_TAG -> $TARGET_TAG"
-            
+
             # Fetch Revision
-            REVISION=$(git ls-remote https://github.com/hanthor/bluefin-cli.git refs/tags/$TARGET_TAG | awk '{print $1}')
+            REVISION=$(git ls-remote https://github.com/hanthor/bluefin-cli.git refs/tags/"$TARGET_TAG" | awk '{print $1}')
             echo "revision=$REVISION" >> "$GITHUB_OUTPUT"
           else
             echo "needs_update=false" >> "$GITHUB_OUTPUT"
@@ -76,7 +76,7 @@ jobs:
         run: |
           TAG="${{ steps.check.outputs.latest_tag }}"
           REVISION="${{ steps.check.outputs.revision }}"
-          
+
           # Update tag
           sed -i "s|tag: \s*\".*\"|tag: \"${TAG}\"|" Formula/bluefin-cli.rb
           # Update revision
@@ -112,10 +112,10 @@ jobs:
       - name: Set up Homebrew and build bottle
         run: |
           VERSION="${{ needs.update-formula.outputs.version }}"
-          
+
           mkdir -p /tmp/homebrew-tap
           cp -r . /tmp/homebrew-tap/
-          
+
           docker run --rm \
             -v "/tmp/homebrew-tap:/tmp/homebrew-tap" \
             -v "${{ github.workspace }}:/workspace" \
@@ -125,12 +125,12 @@ jobs:
               brew update-reset
               mkdir -p /home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/ublue-os
               cp -r /tmp/homebrew-tap /home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/ublue-os/homebrew-tap
-              
+
               brew install --build-bottle 'ublue-os/tap/bluefin-cli'
-              
+
               cd /tmp
               brew bottle --json --root-url='https://github.com/${{ github.repository }}/releases/download/bluefin-cli-${VERSION}' 'ublue-os/tap/bluefin-cli'
-              
+
               sudo chown -R \$(whoami) /workspace
               cp *.bottle.* /workspace/
             "
@@ -243,7 +243,7 @@ jobs:
           if ls ./*.bottle.json 1> /dev/null 2>&1; then
             export HOMEBREW_NO_AUTO_UPDATE=1
             export HOMEBREW_NO_INSTALL_FROM_API=1
-            
+
             if ! command -v brew &> /dev/null; then
               /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
               eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
