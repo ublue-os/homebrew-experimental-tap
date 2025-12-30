@@ -1,0 +1,266 @@
+name: Build bluefin-cli Bottles
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'Formula/bluefin-cli.rb'
+  repository_dispatch:
+    types: [build-bluefin-cli-bottle]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to build (e.g. v0.0.3)'
+        required: true
+
+jobs:
+  update-formula:
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.check.outputs.latest_version_clean }}
+      tag: ${{ steps.check.outputs.latest_tag }}
+      current-version: ${{ steps.check.outputs.current_tag }}
+      needs-update: ${{ steps.check.outputs.needs_update }}
+      branch: ${{ steps.set-branch.outputs.branch }}
+      pr-number: ${{ steps.create-pr.outputs.pull-request-number }}
+      working-branch: ${{ steps.set-working-branch.outputs.working-branch }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check version and determine if update needed
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # 1. Determine Target Version
+          if [ -n "${{ github.event.client_payload.version || github.event.inputs.version }}" ]; then
+            TARGET_TAG="${{ github.event.client_payload.version || github.event.inputs.version }}"
+            echo "Checking manual version request: $TARGET_TAG"
+          else
+            echo "Checking for latest GitHub release..."
+            TARGET_TAG=$(gh release view --repo hanthor/bluefin-cli --json tagName --jq .tagName)
+          fi
+          
+          echo "Target tag: $TARGET_TAG"
+          
+          # Clean version (remove v)
+          CLEAN_VERSION="${TARGET_TAG#v}"
+          echo "latest_version_clean=$CLEAN_VERSION" >> "$GITHUB_OUTPUT"
+          echo "latest_tag=$TARGET_TAG" >> "$GITHUB_OUTPUT"
+
+          # 2. Get Current Version from Formula
+          CURRENT_TAG=$(grep -oP 'tag:\s*"\K[^"]+' Formula/bluefin-cli.rb)
+          echo "current_tag=$CURRENT_TAG" >> "$GITHUB_OUTPUT"
+
+          # 3. Compare
+          if [ "$TARGET_TAG" != "$CURRENT_TAG" ]; then
+            echo "needs_update=true" >> "$GITHUB_OUTPUT"
+            echo "Update needed: $CURRENT_TAG -> $TARGET_TAG"
+            
+            # Fetch Revision
+            REVISION=$(git ls-remote https://github.com/hanthor/bluefin-cli.git refs/tags/$TARGET_TAG | awk '{print $1}')
+            echo "revision=$REVISION" >> "$GITHUB_OUTPUT"
+          else
+            echo "needs_update=false" >> "$GITHUB_OUTPUT"
+            echo "Up to date."
+          fi
+
+      - name: Set branch output
+        id: set-branch
+        run: |
+          BRANCH="bluefin-cli-${{ steps.check.outputs.latest_version_clean }}-${{ github.run_number }}"
+          echo "branch=${BRANCH}" >> "$GITHUB_OUTPUT"
+
+      - name: Update formula version
+        if: steps.check.outputs.needs_update == 'true'
+        run: |
+          TAG="${{ steps.check.outputs.latest_tag }}"
+          REVISION="${{ steps.check.outputs.revision }}"
+          
+          # Update tag
+          sed -i "s|tag: \s*\".*\"|tag: \"${TAG}\"|" Formula/bluefin-cli.rb
+          # Update revision
+          sed -i "s|revision: \".*\"|revision: \"${REVISION}\"|" Formula/bluefin-cli.rb
+
+      - name: Create PR for formula update
+        id: create-pr
+        if: steps.check.outputs.needs_update == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: ${{ steps.set-branch.outputs.branch }}
+          base: main
+          title: "Update bluefin-cli to ${{ steps.check.outputs.latest_version_clean }}"
+          commit-message: "chore: update bluefin-cli to ${{ steps.check.outputs.latest_version_clean }}"
+
+      - name: Set working branch
+        id: set-working-branch
+        run: |
+          if [ "${{ steps.check.outputs.needs_update }}" = "true" ] && [ "${{ steps.create-pr.outputs.pull-request-number }}" != "" ]; then
+             echo "working-branch=${{ steps.set-branch.outputs.branch }}" >> "$GITHUB_OUTPUT"
+          else
+             echo "working-branch=main" >> "$GITHUB_OUTPUT"
+          fi
+
+  build-bottles:
+    needs: update-formula
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.update-formula.outputs.working-branch }}
+
+      - name: Set up Homebrew and build bottle
+        run: |
+          VERSION="${{ needs.update-formula.outputs.version }}"
+          
+          mkdir -p /tmp/homebrew-tap
+          cp -r . /tmp/homebrew-tap/
+          
+          docker run --rm \
+            -v "/tmp/homebrew-tap:/tmp/homebrew-tap" \
+            -v "${{ github.workspace }}:/workspace" \
+            -w /workspace \
+            homebrew/ubuntu24.04:latest \
+            bash -c "
+              brew update-reset
+              mkdir -p /home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/ublue-os
+              cp -r /tmp/homebrew-tap /home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/ublue-os/homebrew-tap
+              
+              brew install --build-bottle 'ublue-os/tap/bluefin-cli'
+              
+              cd /tmp
+              brew bottle --json --root-url='https://github.com/${{ github.repository }}/releases/download/bluefin-cli-${VERSION}' 'ublue-os/tap/bluefin-cli'
+              
+              sudo chown -R \$(whoami) /workspace
+              cp *.bottle.* /workspace/
+            "
+
+      - name: Rename bottle files
+        run: |
+          sudo chown -R "$(whoami)" .
+          for file in *.bottle.*; do
+            if [[ -f "$file" ]]; then
+              newname="${file/--/-}"
+              if [[ "$file" != "$newname" ]]; then
+                 mv "$file" "$newname"
+              fi
+            fi
+          done
+
+      - name: Upload bottle artifacts
+        uses: actions/upload-artifact@v4
+        with:
+           name: bottle
+           path: '*.bottle.*'
+
+  upload-bottles-to-pr:
+    needs: [update-formula, build-bottles]
+    runs-on: ubuntu-24.04
+    if: needs.update-formula.outputs.pr-number != ''
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.update-formula.outputs.working-branch }}
+
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download all bottles
+        uses: actions/download-artifact@v4
+        with:
+          name: bottle
+          path: .
+
+      - name: Update formula with bottle SHAs
+        run: |
+          mkdir -p "$(brew --repository)/Library/Taps/ublue-os"
+          cp -r . "$(brew --repository)/Library/Taps/ublue-os/homebrew-tap"
+          brew bottle --merge --write --no-commit ./*.bottle.json
+
+      - name: Commit bottle updates
+        uses: EndBug/add-and-commit@v9
+        with:
+          message: 'chore: add bluefin-cli bottles for ${{ needs.update-formula.outputs.version }}'
+
+  upload-bottles-to-release:
+    needs: [update-formula, build-bottles]
+    runs-on: ubuntu-24.04
+    if: needs.update-formula.outputs.pr-number == ''
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.update-formula.outputs.working-branch }}
+
+      - name: Download all bottles
+        uses: actions/download-artifact@v4
+        with:
+          name: bottle
+          path: .
+
+      - name: Check if release exists
+        id: check-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ needs.update-formula.outputs.version }}"
+          if gh release view "bluefin-cli-$VERSION" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "release-exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "release-exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create new release
+        if: steps.check-release.outputs.release-exists == 'false'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ needs.update-formula.outputs.version }}"
+          gh release create "bluefin-cli-$VERSION" ./*.bottle.* \
+            --title "bluefin-cli $VERSION bottles" \
+            --notes "Bottles for bluefin-cli $VERSION" \
+            --repo "$GITHUB_REPOSITORY"
+
+      - name: Update existing release
+        if: steps.check-release.outputs.release-exists == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ needs.update-formula.outputs.version }}"
+          gh release upload "bluefin-cli-$VERSION" ./*.bottle.* \
+            --clobber \
+            --repo "$GITHUB_REPOSITORY"
+
+      - name: Update formula with bottle SHAs
+        if: success()
+        run: |
+          if ls ./*.bottle.json 1> /dev/null 2>&1; then
+            export HOMEBREW_NO_AUTO_UPDATE=1
+            export HOMEBREW_NO_INSTALL_FROM_API=1
+            
+            if ! command -v brew &> /dev/null; then
+              /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+              eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+            fi
+
+            mkdir -p /home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/ublue-os
+            cp -r . /home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/ublue-os/homebrew-tap
+
+            brew bottle --merge --write --no-commit ./*.bottle.json
+
+            if git diff --quiet Formula/bluefin-cli.rb; then
+              echo "No changes"
+            else
+              git config --global user.email "action@github.com"
+              git config --global user.name "GitHub Action"
+              git add Formula/bluefin-cli.rb
+              git commit -m "chore: add bluefin-cli bottles for ${{ needs.update-formula.outputs.version }}"
+              git push origin main
+            fi
+          fi
