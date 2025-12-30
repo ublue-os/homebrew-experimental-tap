@@ -5,7 +5,7 @@ class BluefinCli < Formula
       tag:      "v0.0.3",
       revision: "a02c6ff89cf17e23e483b56959412ec8fbc85e6f"
   license "Apache-2.0"
-  head "https://github.com/hanthor/bluefin-cli.git"
+  head "https://github.com/hanthor/bluefin-cli. git", branch: "master"
 
   depends_on "go" => :build
 
