@@ -4,6 +4,11 @@ cask "docker-rootless-linux" do
   version "29.1.3"
   sha256 intel: "a9a19e20dd09c61ec1af7d67d9dec2455004d0fbd35120fe1d24588c123f9474"
 
+  livecheck do
+    url "https://download.docker.com/linux/static/stable/#{arch}/"
+    regex(/href=.*?docker[._-]v?(\d+(?:\.\d+)+)\.tgz/i)
+  end
+
   url "https://download.docker.com/linux/static/stable/#{arch}/docker-#{version}.tgz"
   name "Docker Rootless"
   desc "Docker static binaries with rootless extras"
