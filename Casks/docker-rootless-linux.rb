@@ -77,9 +77,6 @@ cask "docker-rootless-linux" do
 
       [Install]
       WantedBy=default.target
-
-      [Install]
-      WantedBy=default.target
     SERVICE
 
     File.write(service_file, service_content)
@@ -94,7 +91,7 @@ cask "docker-rootless-linux" do
   zap trash: "~/.config/systemd/user/dockerd-rootless.service"
 
   caveats <<~EOS
-    Use 'dockerd-rootless --no-iptables' to start
+    Use 'dockerd-rootless --iptables=false' to start
 
     export DOCKER_HOST=unix:///run/user/$(id -u)/docker.sock
   EOS
