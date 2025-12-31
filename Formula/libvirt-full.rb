@@ -12,12 +12,7 @@ class LibvirtFull < Formula
   end
 
   bottle do
-    sha256 arm64_tahoe:   "d9a3a6eff482497615ff9563ca04cb33a1bcc0c3b1181ab4157a01b5fed74674"
-    sha256 arm64_sequoia: "4ee2fdb66753b200d128e045cf6f0b919df62682195bcd00735e32a9e56e491b"
-    sha256 arm64_sonoma:  "e50dc20c7f39ab7ed714f34ae273e604d22f82a3d37c447dee7783f77df9acfc"
-    sha256 sonoma:        "710cc28a5836cd9b947d2a571941e267ce54dc8b6666ec25c48d9480d7b16c41"
-    sha256 arm64_linux:   "682f89989f94446da0cf6fcb23a25f0980af1973b36f2247c5b447456105f012"
-    sha256 x86_64_linux:  "8cbd53c67b20a32b295d02cfd8c08fc9d17834fa712baec2ae1538ea2136922f"
+    sha256 x86_64_linux: "8cbd53c67b20a32b295d02cfd8c08fc9d17834fa712baec2ae1538ea2136922f"
   end
 
   depends_on "docutils" => :build
@@ -25,32 +20,22 @@ class LibvirtFull < Formula
   depends_on "meson" => :build
   depends_on "ninja" => :build
   depends_on "pkgconf" => :build
+  depends_on "acl"
+  depends_on "curl"
+  depends_on "cyrus-sasl"
   depends_on "glib"
   depends_on "gnutls"
   depends_on "gperf"
   depends_on "json-c"
   depends_on "libiscsi"
+  depends_on "libnl"
+  depends_on "libpciaccess"
   depends_on "libssh2"
+  depends_on "libtirpc"
+  depends_on "libxml2"
+  depends_on "libxslt"
   depends_on "readline"
-
-  uses_from_macos "libxslt" => :build
-  uses_from_macos "perl" => :build
-  uses_from_macos "curl"
-  uses_from_macos "libxml2"
-
-  on_macos do
-    depends_on "gettext"
-  end
-
-  on_linux do
-    depends_on "acl"
-    depends_on "cyrus-sasl"
-    depends_on "libnl"
-    depends_on "libpciaccess"
-    depends_on "libtirpc"
-    depends_on "libxml2"
-    depends_on "util-linux"
-  end
+  depends_on "util-linux"
 
   conflicts_with "libvirt", because: "this is a special build of libvirt with udev support"
 
