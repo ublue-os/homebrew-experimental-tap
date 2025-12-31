@@ -95,8 +95,10 @@ cask "docker-rootless-linux" do
 
     ohai "Configuring docker context..."
     docker_cli = "#{HOMEBREW_PREFIX}/bin/docker"
-    context_create_cmd = "#{docker_cli} context create rootless --docker host=unix:///run/user/#{Process.uid}/docker.sock"
-    system_command "sh", args: ["-c", "#{docker_cli} context inspect rootless >/dev/null 2>&1 || #{context_create_cmd}"]
+    docker_socket = "unix:///run/user/#{Process.uid}/docker.sock"
+    context_create_cmd = "#{docker_cli} context create rootless --docker host=#{docker_socket}"
+    system_command "sh",
+                   args: ["-c", "#{docker_cli} context inspect rootless >/dev/null 2>&1 || #{context_create_cmd}"]
     system_command docker_cli, args: ["context", "use", "rootless"]
   end
 
