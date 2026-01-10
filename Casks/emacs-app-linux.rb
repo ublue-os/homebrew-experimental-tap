@@ -95,12 +95,13 @@ cask "emacs-app-linux" do
         export EMACSDATA="/home/linuxbrew/.linuxbrew/opt/emacs-app-linux/share/emacs/#{emacs_version}/etc"
         export EMACSPATH="/home/linuxbrew/.linuxbrew/opt/emacs-app-linux/libexec/emacs/#{emacs_version}/#{target_triplet}"
         export EMACSDOC="/home/linuxbrew/.linuxbrew/opt/emacs-app-linux/share/emacs/#{emacs_version}/etc"
-        export EMACSLOADPATH="/home/linuxbrew/.linuxbrew/opt/emacs-app-linux/share/emacs/#{emacs_version}/lisp"
+        # Set EMACSLOADPATH with trailing colon to make Emacs use this path and automatically append subdirectories
+        export EMACSLOADPATH="/home/linuxbrew/.linuxbrew/opt/emacs-app-linux/share/emacs/#{emacs_version}/lisp:"
       else
         export EMACSDATA="$SCRIPT_DIR/share/emacs/#{emacs_version}/etc"
         export EMACSPATH="$SCRIPT_DIR/bin"
         export EMACSDOC="$SCRIPT_DIR/share/emacs/#{emacs_version}/etc"
-        export EMACSLOADPATH="$SCRIPT_DIR/share/emacs/#{emacs_version}/lisp"
+        export EMACSLOADPATH="$SCRIPT_DIR/share/emacs/#{emacs_version}/lisp:"
       fi
     ENVVARS
 
