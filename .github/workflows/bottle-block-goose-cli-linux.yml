@@ -50,12 +50,12 @@ jobs:
             bash -c "
               brew update-reset
               mkdir -p /home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/ublue-os
-              cp -r /tmp/homebrew-tap /home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/ublue-os/homebrew-experimental
+              cp -r /tmp/homebrew-tap /home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/ublue-os/homebrew-experimental-tap
 
-              brew install --build-bottle 'ublue-os/experimental/block-goose-cli-linux'
+              brew install --build-bottle 'ublue-os/experimental-tap/block-goose-cli-linux'
 
               cd /tmp
-              brew bottle --json --root-url='https://github.com/${{ github.repository }}/releases/download/block-goose-cli-linux-${VERSION}' 'ublue-os/experimental/block-goose-cli-linux'
+              brew bottle --json --root-url='https://github.com/${{ github.repository }}/releases/download/block-goose-cli-linux-${VERSION}' 'ublue-os/experimental-tap/block-goose-cli-linux'
 
               sudo chown -R \$(whoami) /workspace
               cp *.bottle.* /workspace/
@@ -142,12 +142,10 @@ jobs:
         run: |
           if [ -d /tmp/bottles ] && ls /tmp/bottles/*.bottle.json 1> /dev/null 2>&1; then
             cd /tmp/bottles
-            mkdir -p "$(brew --repository)/Library/Taps/ublue-os"
-            cp -r "${{ github.workspace }}" "$(brew --repository)/Library/Taps/ublue-os/homebrew-experimental"
 
             brew bottle --merge --write --no-commit ./*.bottle.json
 
-            cp "$(brew --repository)/Library/Taps/ublue-os/homebrew-experimental/Formula/block-goose-cli-linux.rb" "${{ github.workspace }}/Formula/"
+            cp "$(brew --repository)/Library/Taps/ublue-os/homebrew-experimental-tap/Formula/block-goose-cli-linux.rb" "${{ github.workspace }}/Formula/"
           else
             echo "No bottle files found, skipping merge"
           fi

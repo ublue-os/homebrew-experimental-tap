@@ -43,14 +43,14 @@ jobs:
             bash -c "
               brew update-reset
               mkdir -p /home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/ublue-os
-              cp -r /tmp/homebrew-tap /home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/ublue-os/homebrew-experimental
+              cp -r /tmp/homebrew-tap /home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/ublue-os/homebrew-experimental-tap
 
               # Build dependencies from source if bottles not available
-              brew install --build-from-source 'ublue-os/experimental/block-goose-cli-linux' || true
-              brew install --build-bottle 'ublue-os/experimental/linux-mcp-server'
+              brew install --build-from-source 'ublue-os/experimental-tap/block-goose-cli-linux' || true
+              brew install --build-bottle 'ublue-os/experimental-tap/linux-mcp-server'
 
               cd /tmp
-              brew bottle --json --root-url='https://github.com/${{ github.repository }}/releases/download/linux-mcp-server-${VERSION}' 'ublue-os/experimental/linux-mcp-server'
+              brew bottle --json --root-url='https://github.com/${{ github.repository }}/releases/download/linux-mcp-server-${VERSION}' 'ublue-os/experimental-tap/linux-mcp-server'
 
               sudo chown -R \$(whoami) /workspace
               cp *.bottle.* /workspace/
@@ -92,13 +92,9 @@ jobs:
         run: |
           VERSION="${{ needs.get-version.outputs.version }}"
 
-          # Add the tap
-          mkdir -p "$(brew --repository)/Library/Taps/ublue-os"
-          cp -r . "$(brew --repository)/Library/Taps/ublue-os/homebrew-experimental"
+          brew install --build-bottle 'ublue-os/experimental-tap/linux-mcp-server'
 
-          brew install --build-bottle 'ublue-os/experimental/linux-mcp-server'
-
-          brew bottle --json --root-url="https://github.com/${{ github.repository }}/releases/download/linux-mcp-server-${VERSION}" 'ublue-os/experimental/linux-mcp-server'
+          brew bottle --json --root-url="https://github.com/${{ github.repository }}/releases/download/linux-mcp-server-${VERSION}" 'ublue-os/experimental-tap/linux-mcp-server'
 
       - name: Rename bottle files
         run: |
@@ -174,12 +170,10 @@ jobs:
         run: |
           if [ -d /tmp/bottles ] && ls /tmp/bottles/*.bottle.json 1> /dev/null 2>&1; then
             cd /tmp/bottles
-            mkdir -p "$(brew --repository)/Library/Taps/ublue-os"
-            cp -r "${{ github.workspace }}" "$(brew --repository)/Library/Taps/ublue-os/homebrew-experimental"
 
             brew bottle --merge --write --no-commit ./*.bottle.json
 
-            cp "$(brew --repository)/Library/Taps/ublue-os/homebrew-experimental/Formula/linux-mcp-server.rb" "${{ github.workspace }}/Formula/"
+            cp "$(brew --repository)/Library/Taps/ublue-os/homebrew-experimental-tap/Formula/linux-mcp-server.rb" "${{ github.workspace }}/Formula/"
           else
             echo "No bottle files found, skipping merge"
           fi
