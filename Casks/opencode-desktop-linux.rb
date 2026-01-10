@@ -18,7 +18,6 @@ cask "opencode-desktop-linux" do
     end
   end
 
-  auto_updates true
   depends_on formula: "squashfs"
 
   binary "usr/bin/OpenCode", target: "opencode-desktop"
