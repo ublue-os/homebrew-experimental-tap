@@ -1,4 +1,5 @@
 name: Build linux-mcp-server Bottles
+
 on:
   push:
     branches:
@@ -13,22 +14,54 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+      - uses: actions/checkout@v4
 
       - name: Extract version from formula
         id: version
         run: |
-          VERSION=$(grep -oP 'url ".*linux_mcp_server-\K[0-9]+\.[0-9]+\.[0-9]+' Formula/linux-mcp-server.rb)
+          VERSION=$(grep -oE 'url ".*linux_mcp_server-[0-9]+\.[0-9]+\.[0-9]+' Formula/linux-mcp-server.rb | grep -oE '[0-9]+\.[0-9]+\.[0-9]+$')
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Version: $VERSION"
 
-  build-linux-bottle:
+  bottle-macos:
+    needs: get-version
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+
+      - name: Build bottle
+        run: |
+          VERSION="${{ needs.get-version.outputs.version }}"
+          brew install --build-bottle 'ublue-os/experimental-tap/linux-mcp-server'
+          brew bottle --json --no-rebuild --root-url="https://github.com/${{ github.repository }}/releases/download/linux-mcp-server-${VERSION}" 'ublue-os/experimental-tap/linux-mcp-server'
+
+      - name: Rename bottle files
+        run: |
+          for file in *.bottle.*; do
+            if [[ -f "$file" ]]; then
+              newname="${file/--/-}"
+              if [[ "$file" != "$newname" ]]; then
+                mv "$file" "$newname"
+              fi
+            fi
+          done
+
+      - name: Upload bottle artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: bottle-macos
+          path: '*.bottle.*'
+
+  bottle-linux:
     needs: get-version
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+      - uses: actions/checkout@v4
 
-      - name: Set up Homebrew and build bottle
+      - name: Build bottle in Docker
         run: |
           VERSION="${{ needs.get-version.outputs.version }}"
 
@@ -49,9 +82,9 @@ jobs:
               brew install --build-bottle 'ublue-os/experimental-tap/linux-mcp-server'
 
               cd /tmp
-              brew bottle --json --root-url='https://github.com/${{ github.repository }}/releases/download/linux-mcp-server-${VERSION}' 'ublue-os/experimental-tap/linux-mcp-server'
+              brew bottle --json --no-rebuild --root-url='https://github.com/${{ github.repository }}/releases/download/linux-mcp-server-${VERSION}' 'ublue-os/experimental-tap/linux-mcp-server'
 
-              sudo chown -R \$(whoami) /workspace
+              sudo chown -R \$(id -u):\$(id -g) /workspace
               cp *.bottle.* /workspace/
             "
 
@@ -62,64 +95,27 @@ jobs:
             if [[ -f "$file" ]]; then
               newname="${file/--/-}"
               if [[ "$file" != "$newname" ]]; then
-                 mv "$file" "$newname"
+                mv "$file" "$newname"
               fi
             fi
           done
 
       - name: Upload bottle artifacts
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        uses: actions/upload-artifact@v4
         with:
-           name: bottle-linux
-           path: '*.bottle.*'
+          name: bottle-linux
+          path: '*.bottle.*'
 
-  # macOS builds run AFTER Linux to avoid race conditions with rebuild numbers
-  build-macos-bottle:
-    needs: [get-version, build-linux-bottle]
-    runs-on: macos-15
-    steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
-
-      - name: Set up Homebrew
-        uses: Homebrew/actions/setup-homebrew@master
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build bottle
-        run: |
-          VERSION="${{ needs.get-version.outputs.version }}"
-
-          brew install --build-bottle 'ublue-os/experimental-tap/linux-mcp-server'
-
-          brew bottle --json --root-url="https://github.com/${{ github.repository }}/releases/download/linux-mcp-server-${VERSION}" 'ublue-os/experimental-tap/linux-mcp-server'
-
-      - name: Rename bottle files
-        run: |
-          for file in *.bottle.*; do
-            if [[ -f "$file" ]]; then
-              newname="${file/--/-}"
-              if [[ "$file" != "$newname" ]]; then
-                 mv "$file" "$newname"
-              fi
-            fi
-          done
-
-      - name: Upload bottle artifacts
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
-        with:
-           name: bottle-macos
-           path: '*.bottle.*'
-
-  upload-bottles:
-    needs: [get-version, build-linux-bottle, build-macos-bottle]
+  upload:
+    needs: [get-version, bottle-macos, bottle-linux]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+      - uses: actions/checkout@v4
 
       - name: Download all bottles
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        uses: actions/download-artifact@v4
         with:
           pattern: bottle-*
           merge-multiple: true
@@ -160,17 +156,13 @@ jobs:
 
       - name: Set up Homebrew
         uses: Homebrew/actions/setup-homebrew@master
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update formula with bottle SHAs
         run: |
           if [ -d /tmp/bottles ] && ls /tmp/bottles/*.bottle.json 1> /dev/null 2>&1; then
             cd /tmp/bottles
-
             brew bottle --merge --write --no-commit ./*.bottle.json
 
-            # Copy via temp file to handle symlink (setup-homebrew links tap to workspace)
             cp "$(brew --repository)/Library/Taps/ublue-os/homebrew-experimental-tap/Formula/linux-mcp-server.rb" /tmp/linux-mcp-server.rb
             cp /tmp/linux-mcp-server.rb "${{ github.workspace }}/Formula/"
           else
@@ -182,8 +174,8 @@ jobs:
           if git diff --quiet Formula/linux-mcp-server.rb; then
             echo "No changes to formula"
           else
-            git config --global user.email "action@github.com"
-            git config --global user.name "GitHub Action"
+            git config user.email "action@github.com"
+            git config user.name "GitHub Action"
             git add Formula/linux-mcp-server.rb
             git commit -m "chore: add linux-mcp-server bottles for ${{ needs.get-version.outputs.version }}"
             git push origin main
