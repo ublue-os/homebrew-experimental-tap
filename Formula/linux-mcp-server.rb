@@ -7,6 +7,11 @@ class LinuxMcpServer < Formula
   sha256 "466554d4c365160ef7518c4feb4bb05f4dc53908288a4c9eceabafafbccccaf5"
   license "GPL-3.0-only"
 
+  livecheck do
+    url :stable
+    strategy :pypi
+  end
+
   bottle do
     root_url "https://github.com/ublue-os/homebrew-experimental-tap/releases/download/linux-mcp-server-1.0.1"
     sha256 cellar: :any,                 arm64_sequoia: "d0bb853ae91b6ae55ff8a04756b712322a1663b88e56c6980635e22088c99abb"
