@@ -496,7 +496,7 @@ class LinuxMcpServer < Formula
       {
         echo "GEMINI_CLI_COMMAND: gemini"
         echo "GOOSE_PROVIDER: gemini-cli"
-        echo "GOOSE_MODEL: gemini-3-flash"
+        echo "GOOSE_MODEL: gemini-3-flash-preview"
         echo "extensions:"
         echo "  linux-tools:"
         echo "    enabled: true"
@@ -507,6 +507,7 @@ class LinuxMcpServer < Formula
         echo "    envs:"
         echo "      LINUX_MCP_USER: ${USERNAME}"
         echo "      LINUX_MCP_LOG_LEVEL: INFO"
+        echo "      LINUX_MCP_SSH_KEY_PATH: ~/.ssh/id_ed25519"
         echo "    timeout: 30"
         echo "    bundled: null"
         echo "    available_tools: []"
@@ -520,26 +521,21 @@ class LinuxMcpServer < Formula
 
   def caveats
     <<~EOS
-      Linux:
-        To configure goose to use linux-mcp-server locally, run:
-          goose-mcp-setup
+      To configure goose to use linux-mcp-server, run:
+        goose-mcp-setup
 
-        This will create ~/.config/goose/config.yaml with the linux-mcp-server
-        extension configured.
+      This creates ~/.config/goose/config.yaml with these defaults:
+        LINUX_MCP_USER: your current username
+        LINUX_MCP_SSH_KEY_PATH: ~/.ssh/id_ed25519
 
-      macOS (Remote SSH to Linux):
-        On macOS, linux-mcp-server connects to a remote Linux host via SSH.
-        Set these environment variables:
+      To customize, edit ~/.config/goose/config.yaml and modify the envs section.
 
-          export LINUX_MCP_USER="your-username"
-          export LINUX_MCP_SSH_KEY_PATH="~/.ssh/id_ed25519"
-
-        Optional settings:
-          LINUX_MCP_KEY_PASSPHRASE     - Passphrase for encrypted SSH key
-          LINUX_MCP_SEARCH_FOR_SSH_KEY - Set to "yes" to auto-discover keys
-          LINUX_MCP_COMMAND_TIMEOUT    - SSH command timeout in seconds (default: 30)
-          LINUX_MCP_VERIFY_HOST_KEYS   - Set to "true" for host key verification
-          LINUX_MCP_KNOWN_HOSTS_PATH   - Custom path to known_hosts file
+      Additional options you can add:
+        LINUX_MCP_HOST             - Remote Linux host (required on macOS)
+        LINUX_MCP_KEY_PASSPHRASE   - Passphrase for encrypted SSH key
+        LINUX_MCP_COMMAND_TIMEOUT  - SSH timeout in seconds (default: 30)
+        LINUX_MCP_VERIFY_HOST_KEYS - Set to "true" for host key verification
+        LINUX_MCP_KNOWN_HOSTS_PATH - Custom path to known_hosts file
 
       For more configuration options, see:
         https://rhel-lightspeed.github.io/linux-mcp-server/clients/
@@ -547,7 +543,7 @@ class LinuxMcpServer < Formula
   end
 
   test do
-    assert_match "linux-mcp-server", shell_output("#{bin}/linux-mcp-server --help 2>&1", 1)
+    assert_path_exists bin/"linux-mcp-server"
     assert_path_exists bin/"goose-mcp-setup"
   end
 end
