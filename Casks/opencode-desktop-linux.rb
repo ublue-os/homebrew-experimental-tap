@@ -22,10 +22,14 @@ cask "opencode-desktop-linux" do
 
   binary "usr/bin/OpenCode", target: "opencode-desktop"
   binary "usr/bin/opencode-cli", target: "opencode-cli"
-  artifact "usr/share/icons/hicolor/32x32/apps/OpenCode.png"
-  artifact "usr/share/icons/hicolor/128x128/apps/OpenCode.png"
-  artifact "usr/share/icons/hicolor/256x256@2/apps/OpenCode.png"
-  artifact "usr/share/applications/OpenCode.desktop"
+  artifact "usr/share/icons/hicolor/32x32/apps/OpenCode.png",
+           target: "#{Dir.home}/.local/share/icons/hicolor/32x32/apps/OpenCode.png"
+  artifact "usr/share/icons/hicolor/128x128/apps/OpenCode.png",
+           target: "#{Dir.home}/.local/share/icons/hicolor/128x128/apps/OpenCode.png"
+  artifact "usr/share/icons/hicolor/256x256@2/apps/OpenCode.png",
+           target: "#{Dir.home}/.local/share/icons/hicolor/256x256@2/apps/OpenCode.png"
+  artifact "usr/share/applications/OpenCode.desktop",
+           target: "#{Dir.home}/.local/share/applications/OpenCode.desktop"
 
   preflight do
     system "sh", "-c", "rpm2cpio '#{staged_path}/opencode-desktop-linux-#{arch}.rpm' | cpio -idm --quiet",
