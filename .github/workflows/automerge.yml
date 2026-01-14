@@ -1,0 +1,57 @@
+name: Automerge
+
+on:
+  workflow_run:
+    workflows: ["brew test-bot"]
+    types:
+      - completed
+
+jobs:
+  automerge:
+    runs-on: ubuntu-latest
+    if: >
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success'
+    steps:
+      - name: Automate PR labeling
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const run = context.payload.workflow_run;
+            
+            // Allow for manual testing where Pull Requests might not be present in the payload
+            if (run.pull_requests.length === 0) {
+              console.log("No pull requests associated with this workflow run.");
+              return;
+            }
+
+            const pr = run.pull_requests[0];
+            const prNumber = pr.number;
+
+            // Fetch full PR details
+            const { data: pullRequest } = await github.rest.pulls.get({
+              owner,
+              repo,
+              pull_number: prNumber,
+            });
+
+            // Check conditions:
+            // 1. Author should be the bot used in bumps
+            //    PRs created by GITHUB_TOKEN appear as 'app/github-actions'
+            //    We also check for 'lambdaclan' just in case, and rely heavily on branch name.
+            
+            const isBumpBot = ['lambdaclan', 'app/github-actions'].includes(pullRequest.user.login);
+            const isBumpBranch = pullRequest.head.ref.startsWith('bump-');
+            
+            if (isBumpBot || isBumpBranch) {
+              console.log(`PR #${prNumber} identified as a bump PR. Adding 'pr-pull' label.`);
+              await github.rest.issues.addLabels({
+                owner,
+                repo,
+                issue_number: prNumber,
+                labels: ['pr-pull']
+              });
+            } else {
+              console.log(`PR #${prNumber} is not a bump PR. Skipping.`);
+            }
