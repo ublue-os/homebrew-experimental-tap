@@ -29,7 +29,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh pr checkout ${{ inputs.pr_number }}
+          gh pr checkout "${{ inputs.pr_number }}"
           echo "PR_REF=$(git rev-parse HEAD)" >> $GITHUB_ENV
 
       - name: Cache Homebrew Bundler RubyGems
@@ -49,4 +49,4 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh pr edit ${{ inputs.pr_number }} --add-label "pr-pull"
+          gh pr edit "${{ inputs.pr_number }}" --add-label "pr-pull"
