@@ -30,7 +30,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh pr checkout "${{ inputs.pr_number }}"
-          echo "PR_REF=$(git rev-parse HEAD)" >> $GITHUB_ENV
+          echo "PR_REF=\"$(git rev-parse HEAD)\"" >> "$GITHUB_ENV"
 
       - name: Cache Homebrew Bundler RubyGems
         uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5
