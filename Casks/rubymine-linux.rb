@@ -3,9 +3,9 @@ cask "rubymine-linux" do
        arm:   "-aarch64"
   os linux: "linux"
 
-  version "2025.3.1.1,253.29346.331"
-  sha256 x86_64_linux: "75577fe0b06cb04b2ecc407e457e38442ae55df34ec989113dedd2bce0fe376d",
-         arm64_linux:  "14d728f124c9f8712671f645a45883cccd106103f172198f8b300fa981e2616a"
+  version "2025.3.2,253.30387.79"
+  sha256 x86_64_linux: "094889fd34453a97174a9d4986aa45410be8d1b68e2e6cb6191696943c75b905",
+         arm64_linux:  "991fb70b850106555e2ffc0ed2e2cd4eff14e4700797b86e54dcaf34314f440c"
 
   url "https://download.jetbrains.com/ruby/RubyMine-#{version.csv.first}#{arch}.tar.gz"
   name "RubyMine"
