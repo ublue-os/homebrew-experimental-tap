@@ -70,11 +70,11 @@ cask "zed-linux" do
 
   uninstall_postflight do
     # Clean up desktop file
-    FileUtils.rm_f("#{Dir.home}/.local/share/applications/zed.desktop")
+    FileUtils.rm("#{Dir.home}/.local/share/applications/zed.desktop")
 
     # Clean up icons
-    FileUtils.rm_f("#{Dir.home}/.local/share/icons/hicolor/512x512/apps/zed.png")
-    FileUtils.rm_f("#{Dir.home}/.local/share/icons/hicolor/1024x1024/apps/zed.png")
+    FileUtils.rm("#{Dir.home}/.local/share/icons/hicolor/512x512/apps/zed.png")
+    FileUtils.rm("#{Dir.home}/.local/share/icons/hicolor/1024x1024/apps/zed.png")
 
     # Update caches
     if system("which update-desktop-database > /dev/null 2>&1")
