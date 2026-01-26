@@ -18,7 +18,7 @@ cask "zed-linux" do
     end
   end
 
-  binary "zed.app/bin/zed"
+  binary "zed.app/bin/zed", target: "zeditor"
   artifact "zed.app/libexec/zed-editor",
            target: "#{HOMEBREW_PREFIX}/opt/zed-linux/libexec/zed-editor"
   artifact "zed.app/lib",
@@ -43,7 +43,7 @@ cask "zed-linux" do
       GenericName=Text Editor
       Comment=A high-performance, multiplayer code editor.
       StartupNotify=true
-      Exec=#{HOMEBREW_PREFIX}/bin/zed %U
+      Exec=#{HOMEBREW_PREFIX}/bin/zeditor %U
       Icon=#{Dir.home}/.local/share/icons/hicolor/512x512/apps/zed.png
       Categories=Utility;TextEditor;Development;IDE;
       Keywords=zed;
@@ -51,7 +51,7 @@ cask "zed-linux" do
       Actions=NewWorkspace;
 
       [Desktop Action NewWorkspace]
-      Exec=#{HOMEBREW_PREFIX}/bin/zed --new %U
+      Exec=#{HOMEBREW_PREFIX}/bin/zeditor --new %U
       Name=Open a new workspace
     EOS
   end
