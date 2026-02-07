@@ -8,7 +8,7 @@ class Buildstream < Formula
   license "Apache-2.0"
 
   bottle do
-    root_url "https://github.com/jumpyvi/homebrew-morebrew/releases/download/buildstream-2.6.0"
+    root_url "https://github.com/ublue-os/homebrew-tap/releases/download/buildstream-2.6.0"
     sha256 cellar: :any_skip_relocation, x86_64_linux: "e7ea00d44718e91554b302c04818df85829f7ef537663f4e1cc25b9ee80a6e45"
   end
 
