@@ -24,6 +24,7 @@ class Buildbox < Formula
   depends_on "libfuse"
   depends_on "openssl@3"
   depends_on "protobuf"
+  depends_on "util-linux"
 
   def install
     args = std_cmake_args + %w[
