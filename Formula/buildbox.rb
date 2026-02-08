@@ -17,10 +17,15 @@ class Buildbox < Formula
   depends_on "nlohmann-json" => :build
   depends_on "pkg-config" => :build
   depends_on "tomlplusplus" => :build
-  depends_on "abseil"
+  depends_on "protobuf" => :build
+  depends_on "bubblewrap" => :build
+  depends_on "util-linux" => :build
+  depends_on "abseil" => :build
+  depends_on "libfuse"
   depends_on "grpc"
   depends_on "openssl@3"
-  depends_on "protobuf"
+  
+
 
   def install
     args = std_cmake_args + %w[
