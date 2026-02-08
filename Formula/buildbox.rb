@@ -10,21 +10,20 @@ class Buildbox < Formula
     sha256 cellar: :any_skip_relocation, x86_64_linux: "e7ea00d44718e91554b302c04818df85829f7ef537663f4e1cc25b9ee80a6e45"
   end
 
-  depends_on "abseil" => :build
-  depends_on "bubblewrap" => :build
   depends_on "cmake" => :build
-  depends_on "curl" => :build
-  depends_on "gflags" => :build
-  depends_on "glog" => :build
   depends_on "google-benchmark" => :build
   depends_on "nlohmann-json" => :build
   depends_on "pkg-config" => :build
-  depends_on "protobuf" => :build
   depends_on "tomlplusplus" => :build
-  depends_on "util-linux" => :build
+  depends_on "abseil"
+  depends_on "bubblewrap"
+  depends_on "curl"
+  depends_on "gflags"
+  depends_on "glog"
   depends_on "grpc"
   depends_on "libfuse"
   depends_on "openssl@3"
+  depends_on "protobuf"
 
   def install
     args = std_cmake_args + %w[
