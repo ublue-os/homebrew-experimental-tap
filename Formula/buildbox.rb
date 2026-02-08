@@ -13,6 +13,7 @@ class Buildbox < Formula
   depends_on "abseil" => :build
   depends_on "bubblewrap" => :build
   depends_on "cmake" => :build
+  depends_on "curl" => :build
   depends_on "gflags" => :build
   depends_on "glog" => :build
   depends_on "google-benchmark" => :build
