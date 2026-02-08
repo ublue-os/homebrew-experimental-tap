@@ -6,7 +6,6 @@ class Buildbox < Formula
   license "Apache-2.0"
 
   depends_on "cmake" => :build
-  depends_on "google-benchmark" => :build
   depends_on "nlohmann-json" => :build
   depends_on "pkg-config" => :build
   depends_on "tomlplusplus" => :build
@@ -17,6 +16,7 @@ class Buildbox < Formula
   depends_on "glog"
   depends_on "grpc"
   depends_on "libfuse"
+  depends_on :linux
   depends_on "openssl@3"
   depends_on "protobuf"
   depends_on "util-linux"
@@ -27,12 +27,12 @@ class Buildbox < Formula
       -DCASD=ON
       -DFUSE=ON
       -DRUN_BUBBLEWRAP=ON
+      -DCASD_BUILD_BENCHMARK=OFF
     ]
 
-    mkdir "build" do
-      system "cmake", "..", *args
-      system "make", "install"
-    end
+    system "cmake", "-S", ".", "-B", "build", *args
+    system "cmake", "--build", "build"
+    system "cmake", "--install", "build"
 
     bin.install_symlink "buildbox-run-bubblewrap" => "buildbox-run"
   end
