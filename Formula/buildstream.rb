@@ -1,7 +1,7 @@
 class Buildstream < Formula
   include Language::Python::Virtualenv
 
-  desc "A powerful software integration tool"
+  desc "Powerful software integration tool"
   homepage "https://buildstream.build"
   url "https://files.pythonhosted.org/packages/7b/88/8b445d272ecb7367e5da4f0d8f41bae87517361098d4f712fb427e04af87/buildstream-2.6.0.tar.gz"
   sha256 "d6f835bab11dda88a3f213441768b1566e21a6c658913f0f0488fcf01a5c23bf"
