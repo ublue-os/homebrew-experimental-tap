@@ -43,9 +43,8 @@ cask "emacs-app-linux" do
            target: "#{HOMEBREW_PREFIX}/opt/emacs-app-linux/libexec"
 
   preflight do
-    # Determine architecture string at runtime without calling the Cask `arch` helper
-    arch_str = Hardware::CPU.arm? ? "arm64" : "amd64"
-    
+    arch_str = on_arch_conditional arm: "arm64", intel: "amd64"
+
     emacs_version = version.split("-").first
     staged_prefix = "#{staged_path}/emacs-pgtk-#{emacs_version}-fedora-latest-#{arch_str}"
 
@@ -55,7 +54,7 @@ cask "emacs-app-linux" do
     # Create symlink to pdmp file in bin directory - Emacs automatically finds it there
     # Emacs looks for {binary-name}.pdmp next to the binary (e.g., emacs-30.2.pdmp)
     # Using a relative symlink saves ~12MB compared to copying
-    target_triplet = Hardware::CPU.arm? ? "aarch64-unknown-linux-gnu" : "x86_64-pc-linux-gnu"
+    target_triplet = on_arch_conditional arm: "aarch64-unknown-linux-gnu", intel: "x86_64-pc-linux-gnu"
     pdmp_source = Dir.glob("#{staged_prefix}/libexec/emacs/#{emacs_version}/#{target_triplet}/*.pdmp").first
     if pdmp_source
       relative_path = "../libexec/emacs/#{emacs_version}/#{target_triplet}/#{File.basename(pdmp_source)}"
@@ -119,9 +118,6 @@ cask "emacs-app-linux" do
     FileUtils.mkdir_p "#{Dir.home}/.local/share/icons/hicolor"
     FileUtils.mkdir_p "#{Dir.home}/.local/share/glib-2.0/schemas"
 
-    # Determine architecture string at runtime without calling the Cask `arch` helper
-    arch_str = Hardware::CPU.arm? ? "arm64" : "amd64"
-
     emacs_root = "#{HOMEBREW_PREFIX}/opt/emacs-app-linux"
 
     # Copy compiled gschemas
@@ -156,7 +152,7 @@ cask "emacs-app-linux" do
 
     # Install desktop files with corrected Exec paths
     emacs_version = version.split("-").first
-    emacs_wm_class = "emacs-#{emacs_version.gsub(".", "-")}"
+    emacs_wm_class = "emacs-#{emacs_version.tr(".", "-")}"
     desktop_files = %w[emacs emacsclient emacs-mail emacsclient-mail]
     desktop_files.each do |desktop_name|
       src_desktop = "#{emacs_root}/share/applications/#{desktop_name}.desktop"
@@ -171,12 +167,13 @@ cask "emacs-app-linux" do
 
       # Fix WMClass to ensure proper window grouping (use hyphen, not dot, to match Emacs binary name)
       # Replace existing StartupWMClass line or add new one if missing
-      if desktop_content =~ /^StartupWMClass=/i
+      case desktop_content
+      when /^StartupWMClass=/i
         desktop_content.gsub!(/^StartupWMClass=.*/i, "StartupWMClass=#{emacs_wm_class}")
-      elsif desktop_content =~ /^StartupNotify=/i
+      when /^StartupNotify=/i
         # Insert after StartupNotify line if it exists
         desktop_content.gsub!(/^(StartupNotify=.*?)$/i, "\\1\nStartupWMClass=#{emacs_wm_class}")
-      elsif desktop_content =~ /^Categories=/i
+      when /^Categories=/i
         # Insert before Categories line if it exists
         desktop_content.gsub!(/^(Categories=.*?)$/i, "StartupWMClass=#{emacs_wm_class}\n\\1")
       end
