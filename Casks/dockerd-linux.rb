@@ -1,12 +1,12 @@
-cask "docker-rootless-linux" do
+cask "dockerd-linux" do
   arch intel: "x86_64"
 
-  version "29.1.3"
+  version "29.2.1"
   sha256 intel: "a9a19e20dd09c61ec1af7d67d9dec2455004d0fbd35120fe1d24588c123f9474"
 
   url "https://download.docker.com/linux/static/stable/#{arch}/docker-#{version}.tgz"
-  name "Docker Rootless"
-  desc "Docker static binaries with rootless extras"
+  name "Dockerd"
+  desc "Dockerd and utilities with rootless support by default"
   homepage "https://docs.docker.com/engine/security/rootless/"
 
   livecheck do
@@ -18,16 +18,13 @@ cask "docker-rootless-linux" do
   depends_on formula: "fuse-overlayfs"
   depends_on formula: "iproute2"
   depends_on formula: "docker"
+  depends_on formula: "containerd"
+  depends_on formula: "runc"
 
   # Binaries from the main tgz
-  # The docker cli is aleady in brew
   binary "docker/dockerd"
   binary "docker/docker-init"
   binary "docker/docker-proxy"
-  binary "docker/containerd"
-  binary "docker/containerd-shim-runc-v2"
-  binary "docker/ctr"
-  binary "docker/runc"
   # Docker rootless extras
   binary "docker-rootless-extras/dockerd-rootless.sh", target: "dockerd-rootless"
   binary "docker-rootless-extras/rootlesskit"
