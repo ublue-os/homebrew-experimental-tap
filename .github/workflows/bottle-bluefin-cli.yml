@@ -104,7 +104,7 @@ jobs:
             runner: ubuntu-24.04-arm
             platform: linux
           - id: macos-x86_64
-            runner: macos-13
+            runner: macos-15-large
             platform: macos
           - id: macos-arm64
             runner: macos-14
