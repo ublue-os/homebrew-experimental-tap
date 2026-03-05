@@ -157,9 +157,6 @@ jobs:
 
           brew untap ublue-os/tap || true
 
-          mkdir -p "$(brew --repository)/Library/Taps/ublue-os"
-          cp -r . "$(brew --repository)/Library/Taps/ublue-os/homebrew-experimental-tap"
-
           brew install --build-bottle 'ublue-os/experimental-tap/bluefin-cli'
           brew bottle --json --root-url="https://github.com/${{ github.repository }}/releases/download/bluefin-cli-${VERSION}" 'ublue-os/experimental-tap/bluefin-cli'
 
