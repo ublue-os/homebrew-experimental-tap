@@ -120,18 +120,18 @@ jobs:
         run: |
           VERSION="${{ needs.update-formula.outputs.version }}"
 
-          mkdir -p /tmp/homebrew-tap
-          cp -r . /tmp/homebrew-tap/
+          mkdir -p /tmp/homebrew-experimental-tap
+          cp -r . /tmp/homebrew-experimental-tap/
 
           docker run --rm \
-            -v "/tmp/homebrew-tap:/tmp/homebrew-tap" \
+            -v "/tmp/homebrew-experimental-tap:/tmp/homebrew-experimental-tap" \
             -v "${{ github.workspace }}:/workspace" \
             -w /workspace \
             homebrew/ubuntu24.04:latest \
             bash -c "
               brew update-reset
               mkdir -p /home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/ublue-os
-              cp -r /tmp/homebrew-tap /home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/ublue-os/homebrew-tap
+              cp -r /tmp/homebrew-experimental-tap /home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/ublue-os/homebrew-experimental-tap
 
               brew install --build-bottle 'ublue-os/experimental-tap/bluefin-cli'
 
@@ -158,7 +158,7 @@ jobs:
           brew untap ublue-os/tap || true
 
           mkdir -p "$(brew --repository)/Library/Taps/ublue-os"
-          cp -r . "$(brew --repository)/Library/Taps/ublue-os/homebrew-tap"
+          cp -r . "$(brew --repository)/Library/Taps/ublue-os/homebrew-experimental-tap"
 
           brew install --build-bottle 'ublue-os/experimental-tap/bluefin-cli'
           brew bottle --json --root-url="https://github.com/${{ github.repository }}/releases/download/bluefin-cli-${VERSION}" 'ublue-os/experimental-tap/bluefin-cli'
@@ -208,7 +208,7 @@ jobs:
       - name: Update formula with bottle SHAs
         run: |
           mkdir -p "$(brew --repository)/Library/Taps/ublue-os"
-          cp -r . "$(brew --repository)/Library/Taps/ublue-os/homebrew-tap"
+          cp -r . "$(brew --repository)/Library/Taps/ublue-os/homebrew-experimental-tap"
           brew bottle --merge --write --no-commit ./*.bottle.json
 
       - name: Commit bottle updates
@@ -280,7 +280,7 @@ jobs:
             fi
 
             mkdir -p /home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/ublue-os
-            cp -r . /home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/ublue-os/homebrew-tap
+            cp -r . /home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/ublue-os/homebrew-experimental-tap
 
             brew bottle --merge --write --no-commit ./*.bottle.json
 
