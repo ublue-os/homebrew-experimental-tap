@@ -42,7 +42,7 @@ jobs:
 
           echo "latest_version=${TARGET_TAG}" >> "$GITHUB_OUTPUT"
 
-          CURRENT_VERSION=$(grep -oP '^  version "\K[^"]+' Formula/bluefin-cli.rb)
+          CURRENT_VERSION=$(grep -oP '^  url "https://github.com/hanthor/bluefin-cli/archive/refs/tags/v\K[^\"]+(?=\.tar\.gz")' Formula/bluefin-cli.rb)
           echo "current_version=${CURRENT_VERSION}" >> "$GITHUB_OUTPUT"
 
           if [ "$TARGET_TAG" != "$CURRENT_VERSION" ]; then
@@ -71,7 +71,6 @@ jobs:
 
           sed -i "s|^  url \".*\"|  url \"https://github.com/hanthor/bluefin-cli/archive/refs/tags/v${VERSION}.tar.gz\"|" Formula/bluefin-cli.rb
           sed -i "s|^  sha256 \".*\"|  sha256 \"${SOURCE_SHA}\"|" Formula/bluefin-cli.rb
-          sed -i "s|^  version \".*\"|  version \"${VERSION}\"|" Formula/bluefin-cli.rb
 
       - name: Create PR for formula update
         id: create-pr
