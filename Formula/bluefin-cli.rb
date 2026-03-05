@@ -1,11 +1,15 @@
 class BluefinCli < Formula
   desc "Bluefin's CLI tool"
   homepage "https://github.com/hanthor/bluefin-cli"
-  url "https://github.com/hanthor/bluefin-cli.git",
-      tag:      "v0.0.3",
-      revision: "a02c6ff89cf17e23e483b56959412ec8fbc85e6f"
+  url "https://github.com/hanthor/bluefin-cli/archive/refs/tags/v0.0.4.tar.gz"
+  sha256 "101549dd884cf41a6b6c9b93c99d1b74e31231b1ddbc71ec95969f4799550611"
+  version "0.0.4"
   license "Apache-2.0"
-  head "https://github.com/hanthor/bluefin-cli.git", branch: "master"
+
+  livecheck do
+    url :stable
+    strategy :github_latest
+  end
 
   depends_on "go" => :build
 
@@ -15,6 +19,6 @@ class BluefinCli < Formula
   end
 
   test do
-    assert_match "version", shell_output("#{bin}/bluefin-cli --version")
+    assert_match version.to_s, shell_output("#{bin}/bluefin-cli --version")
   end
 end
