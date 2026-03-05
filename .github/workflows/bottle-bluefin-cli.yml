@@ -133,10 +133,10 @@ jobs:
               mkdir -p /home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/ublue-os
               cp -r /tmp/homebrew-tap /home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/ublue-os/homebrew-tap
 
-              brew install --build-bottle 'ublue-os/tap/bluefin-cli'
+              brew install --build-bottle 'ublue-os/experimental-tap/bluefin-cli'
 
               cd /tmp
-              brew bottle --json --root-url='https://github.com/${{ github.repository }}/releases/download/bluefin-cli-${VERSION}' 'ublue-os/tap/bluefin-cli'
+              brew bottle --json --root-url='https://github.com/${{ github.repository }}/releases/download/bluefin-cli-${VERSION}' 'ublue-os/experimental-tap/bluefin-cli'
 
               sudo chown -R \$(whoami) /workspace
               cp *.bottle.* /workspace/
@@ -158,8 +158,8 @@ jobs:
           mkdir -p "$(brew --repository)/Library/Taps/ublue-os"
           cp -r . "$(brew --repository)/Library/Taps/ublue-os/homebrew-tap"
 
-          brew install --build-bottle 'ublue-os/tap/bluefin-cli'
-          brew bottle --json --root-url="https://github.com/${{ github.repository }}/releases/download/bluefin-cli-${VERSION}" 'ublue-os/tap/bluefin-cli'
+          brew install --build-bottle 'ublue-os/experimental-tap/bluefin-cli'
+          brew bottle --json --root-url="https://github.com/${{ github.repository }}/releases/download/bluefin-cli-${VERSION}" 'ublue-os/experimental-tap/bluefin-cli'
 
       - name: Rename bottle files
         run: |
