@@ -1,10 +1,8 @@
 cask "buildbox" do
-  arch intel: "x86_64"
-
   version "1.3.52"
-  sha256 x86_64_linux: "88fabb10a5c4b8ba4d7614cbca46427533fda82e49237a920f61fd4d32edb7ff"
+  sha256 "88fabb10a5c4b8ba4d7614cbca46427533fda82e49237a920f61fd4d32edb7ff"
 
-  url "https://gitlab.com/BuildGrid/buildbox/buildbox-integration/-/releases/#{version}/downloads/buildbox-#{arch}-linux-gnu.tgz"
+  url "https://gitlab.com/BuildGrid/buildbox/buildbox-integration/-/releases/#{version}/downloads/buildbox-x86_64-linux-gnu.tgz"
   name "Buildbox"
   desc "Set of tools for remote worker build execution"
   homepage "https://gitlab.com/BuildGrid/buildbox"
