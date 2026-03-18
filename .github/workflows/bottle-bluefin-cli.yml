@@ -99,77 +99,34 @@ jobs:
         include:
           - id: linux-x86_64
             runner: ubuntu-24.04
-            platform: linux
           - id: linux-arm64
             runner: ubuntu-24.04-arm
-            platform: linux
-          - id: macos-x86_64
-            runner: macos-15-large
-            platform: macos
-          - id: macos-arm64
-            runner: macos-14
-            platform: macos
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           ref: ${{ needs.update-formula.outputs.working-branch }}
 
-      - name: Set up Homebrew and build bottle (Linux)
-        if: matrix.platform == 'linux'
-        run: |
-          VERSION="${{ needs.update-formula.outputs.version }}"
-
-          mkdir -p /tmp/homebrew-experimental-tap
-          cp -r . /tmp/homebrew-experimental-tap/
-
-          docker run --rm \
-            -v "/tmp/homebrew-experimental-tap:/tmp/homebrew-experimental-tap" \
-            -v "${{ github.workspace }}:/workspace" \
-            -w /workspace \
-            homebrew/ubuntu24.04:latest \
-            bash -c "
-              brew update-reset
-              mkdir -p /home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/ublue-os
-              cp -r /tmp/homebrew-experimental-tap /home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/ublue-os/homebrew-experimental-tap
-
-              brew install --build-bottle 'ublue-os/experimental-tap/bluefin-cli'
-
-              cd /tmp
-              brew bottle --json --root-url='https://github.com/${{ github.repository }}/releases/download/bluefin-cli-${VERSION}' 'ublue-os/experimental-tap/bluefin-cli'
-
-              sudo chown -R \$(whoami) /workspace
-              cp *.bottle.* /workspace/
-            "
-
-      - name: Set up Homebrew and build bottle (macOS)
-        if: matrix.platform == 'macos'
+      - name: Set up Homebrew
         uses: Homebrew/actions/setup-homebrew@master
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build bottle (macOS)
-        if: matrix.platform == 'macos'
+      - name: Build bottle
         run: |
           VERSION="${{ needs.update-formula.outputs.version }}"
           export HOMEBREW_NO_AUTO_UPDATE=1
           export HOMEBREW_NO_INSTALL_FROM_API=1
-
-          brew untap ublue-os/tap || true
 
           brew install --build-bottle 'ublue-os/experimental-tap/bluefin-cli'
           brew bottle --json --root-url="https://github.com/${{ github.repository }}/releases/download/bluefin-cli-${VERSION}" 'ublue-os/experimental-tap/bluefin-cli'
 
       - name: Rename bottle files
         run: |
-          sudo chown -R "$(whoami)" . || true
           for file in *.bottle.*; do
-            if [[ -f "$file" ]]; then
-              newname="${file/--/-}"
-              if [[ "$file" != "$newname" ]]; then
-                 mv "$file" "$newname"
-              fi
-            fi
+            [[ -f "$file" ]] || continue
+            newname="${file/--/-}"
+            [[ "$file" != "$newname" ]] && mv "$file" "$newname"
           done
 
       - name: Upload bottle artifacts

@@ -109,14 +109,14 @@ jobs:
 
               # Copy the tap to Homebrew's directory
               mkdir -p /home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/ublue-os
-              cp -r /tmp/homebrew-tap /home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/ublue-os/homebrew-tap
+              cp -r /tmp/homebrew-tap /home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/ublue-os/homebrew-experimental-tap
 
               # Install and bottle
-              brew install --build-bottle 'ublue-os/tap/asusctl'
+              brew install --build-bottle 'ublue-os/experimental-tap/asusctl'
 
               # Change to writable directory for bottling
               cd /tmp
-              brew bottle --json --root-url='https://github.com/${{ github.repository }}/releases/download/asusctl-${VERSION}' 'ublue-os/tap/asusctl'
+              brew bottle --json --root-url='https://github.com/${{ github.repository }}/releases/download/asusctl-${VERSION}' 'ublue-os/experimental-tap/asusctl'
 
               # Make workspace writable and copy bottles
               sudo chown -R \$(whoami) /workspace
@@ -172,7 +172,7 @@ jobs:
         run: |
           # Set up the tap so Homebrew can find the formula
           mkdir -p "$(brew --repository)/Library/Taps/ublue-os"
-          cp -r . "$(brew --repository)/Library/Taps/ublue-os/homebrew-tap"
+          cp -r . "$(brew --repository)/Library/Taps/ublue-os/homebrew-experimental-tap"
           brew bottle --merge --write --no-commit ./*.bottle.json
 
       - name: Set up git branch
@@ -257,7 +257,7 @@ jobs:
             # Set up the tap so Homebrew can find the formula
             echo "Setting up tap in Homebrew directory..."
             mkdir -p /home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/ublue-os
-            cp -r . /home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/ublue-os/homebrew-tap
+            cp -r . /home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/ublue-os/homebrew-experimental-tap
 
             echo "Merging bottle SHAs into formula..."
             brew bottle --merge --write --no-commit ./*.bottle.json

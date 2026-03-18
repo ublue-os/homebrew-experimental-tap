@@ -1,33 +1,25 @@
 name: Check Upstream Releases
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "0 3 * * *" # daily at 03:00 UTC
 
 jobs:
   check-asusctl:
     runs-on: ubuntu-24.04
     outputs:
-      new_version: ${{ steps.check.outputs.asusctl_latest }}
+      new_version: ${{ steps.check.outputs.asusctl_latest_version }}
       needs_update: ${{ steps.check.outputs.asusctl_needs_update }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-      
-      - name: Set up Python
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
-        with:
-          python-version: '3.14'
-      
-      - name: Install dependencies
-        run: |
-          pip install requests
-      
+
       - name: Check GitLab releases
         id: check
-        run: |
-          python3 .github/scripts/check_gitlab_release.py
-      
+        run: ruby .github/scripts/check_gitlab_release.rb
+
       - name: Trigger bottle build if new
         if: steps.check.outputs.asusctl_needs_update == 'true'
         uses: peter-evans/repository-dispatch@28959ce8df70de7be546dd1250a005dd32156697 # v4
         with:
           event-type: build-asusctl-bottle
-          client-payload: '{"version": "${{ steps.check.outputs.asusctl_latest }}"}'
+          client-payload: '{"version": "${{ steps.check.outputs.asusctl_latest_version }}"}'
