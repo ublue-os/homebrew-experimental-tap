@@ -48,12 +48,10 @@ class GitLabReleaseChecker
 
     response = http.request(request)
 
-    case response
-    when Net::HTTPSuccess    then response
-    when Net::HTTPRedirection
-      location = URI.join(url, response["location"]).to_s
-      fetch_with_redirect(location, limit - 1)
-    else response
+    if response.is_a?(Net::HTTPRedirection)
+      fetch_with_redirect(URI.join(url, response["location"]).to_s, limit - 1)
+    else
+      response
     end
   end
 

@@ -116,7 +116,6 @@ jobs:
         run: |
           VERSION="${{ needs.update-formula.outputs.version }}"
           export HOMEBREW_NO_AUTO_UPDATE=1
-          export HOMEBREW_NO_INSTALL_FROM_API=1
 
           brew install --build-bottle 'ublue-os/experimental-tap/bluefin-cli'
           brew bottle --json --root-url="https://github.com/${{ github.repository }}/releases/download/bluefin-cli-${VERSION}" 'ublue-os/experimental-tap/bluefin-cli'
