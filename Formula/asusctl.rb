@@ -19,6 +19,7 @@ class Asusctl < Formula
   depends_on "rust" => :build
   depends_on "libgudev"
   depends_on :linux
+  depends_on "systemd"
 
   def install
     ENV.prepend_path "PKG_CONFIG_PATH", Formula["libgudev"].opt_lib/"pkgconfig"
