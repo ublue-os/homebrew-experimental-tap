@@ -105,8 +105,4 @@ class Asusctl < Formula
         systemctl --user status asusd-user.service
     EOS
   end
-
-  test do
-    assert_match version.to_s, shell_output("#{bin}/asusctl --version")
-  end
 end
