@@ -1,8 +1,8 @@
 class BluefinCli < Formula
   desc "Bluefin's CLI tool"
   homepage "https://github.com/hanthor/bluefin-cli"
-  url "https://github.com/hanthor/bluefin-cli/archive/refs/tags/v0.6.0.tar.gz"
-  sha256 "043c6c6a0f454868359e1974931177fa46e7b03368f1ea7f6c7d6a2982d281aa"
+  url "https://github.com/hanthor/bluefin-cli/archive/refs/tags/v0.7.0.tar.gz"
+  sha256 "7223ef2c8df97864f86553fd9b040661c7de564e13ca2562276c826ba42284af"
   license "Apache-2.0"
   head "https://github.com/hanthor/bluefin-cli.git", branch: "main"
 
