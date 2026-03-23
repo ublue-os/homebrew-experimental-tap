@@ -165,7 +165,7 @@ jobs:
           brew bottle --merge --write --no-commit ./*.bottle.json
 
       - name: Commit bottle updates
-        uses: EndBug/add-and-commit@a94899bca583c204427a224a7af87c02f9b325d5 # v9
+        uses: EndBug/add-and-commit@290ea2c423ad77ca9c62ae0f5b224379612c0321 # v10
         with:
           message: 'chore: add bluefin-cli bottles for ${{ needs.update-formula.outputs.version }}'
 
