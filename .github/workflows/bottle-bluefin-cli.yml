@@ -134,8 +134,141 @@ jobs:
           name: bottle-${{ matrix.id }}
           path: '*.bottle.*'
 
+  build-darwin-bottles:
+    needs: update-formula
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ needs.update-formula.outputs.working-branch }}
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+
+      - name: Cross-compile and package darwin bottles
+        env:
+          VERSION: ${{ needs.update-formula.outputs.version }}
+        run: |
+          set -euo pipefail
+          ROOT_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/bluefin-cli-${VERSION}"
+          DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          GIT_REVISION=$(git rev-parse HEAD)
+
+          curl -fsSL "https://github.com/hanthor/bluefin-cli/archive/refs/tags/v${VERSION}.tar.gz" | tar xz
+          SOURCE_MTIME=$(stat -c %Y "bluefin-cli-${VERSION}/go.mod" 2>/dev/null || stat -c %Y "bluefin-cli-${VERSION}")
+          cd "bluefin-cli-${VERSION}"
+
+          for GOARCH in amd64 arm64; do
+            if [ "$GOARCH" = "amd64" ]; then
+              PLATFORM="sequoia"
+              CARCH="x86_64"
+              CPU_FAMILY="penryn"
+            else
+              PLATFORM="arm64_sequoia"
+              CARCH="arm64"
+              CPU_FAMILY="arm_firestorm_icestorm"
+            fi
+
+            CGO_ENABLED=0 GOOS=darwin GOARCH="${GOARCH}" go build \
+              -ldflags="-s -w" -o "bluefin-cli-${PLATFORM}" .
+
+            CELLAR="staging-${PLATFORM}/bluefin-cli/${VERSION}"
+            mkdir -p "${CELLAR}/bin" "${CELLAR}/.brew"
+            cp "bluefin-cli-${PLATFORM}" "${CELLAR}/bin/bluefin-cli"
+            for f in CHANGELOG.md LICENSE README.md; do
+              [ -f "$f" ] && cp "$f" "${CELLAR}/"
+            done
+            cp ../Formula/bluefin-cli.rb "${CELLAR}/.brew/"
+
+            jq -n \
+              --arg carch "$CARCH" \
+              --argjson source_mtime "$SOURCE_MTIME" \
+              --arg cpu_family "$CPU_FAMILY" \
+              '{
+                "homebrew_version": "5.1.0",
+                "changed_files": ["INSTALL_RECEIPT.json"],
+                "source_modified_time": $source_mtime,
+                "compiler": "clang",
+                "runtime_dependencies": [],
+                "arch": $carch,
+                "built_on": {
+                  "os": "Macintosh",
+                  "os_version": "macOS 15",
+                  "cpu_family": $cpu_family
+                }
+              }' > "${CELLAR}/INSTALL_RECEIPT.json"
+
+            FILENAME="bluefin-cli-${VERSION}.${PLATFORM}.bottle.tar.gz"
+            tar czf "../${FILENAME}" -C "staging-${PLATFORM}" bluefin-cli/
+            SHA=$(sha256sum "../${FILENAME}" | awk '{print $1}')
+
+            jq -n \
+              --arg version "$VERSION" \
+              --arg platform "$PLATFORM" \
+              --arg sha "$SHA" \
+              --arg filename "$FILENAME" \
+              --arg root_url "$ROOT_URL" \
+              --arg date "$DATE" \
+              --arg git_rev "$GIT_REVISION" \
+              --arg carch "$CARCH" \
+              --arg cpu_family "$CPU_FAMILY" \
+              --arg github_repo "$GITHUB_REPOSITORY" \
+              --arg desc "Bluefin's CLI tool" \
+              --argjson source_mtime "$SOURCE_MTIME" \
+              '{
+                "ublue-os/experimental-tap/bluefin-cli": {
+                  "formula": {
+                    "name": "bluefin-cli",
+                    "pkg_version": $version,
+                    "path": "Library/Taps/ublue-os/homebrew-experimental-tap/Formula/bluefin-cli.rb",
+                    "tap_git_path": "Formula/bluefin-cli.rb",
+                    "tap_git_revision": $git_rev,
+                    "tap_git_remote": ("https://github.com/" + $github_repo),
+                    "desc": $desc,
+                    "license": "Apache-2.0",
+                    "homepage": "https://github.com/hanthor/bluefin-cli"
+                  },
+                  "bottle": {
+                    "root_url": $root_url,
+                    "cellar": "any_skip_relocation",
+                    "rebuild": 0,
+                    "date": $date,
+                    "tags": {
+                      ($platform): {
+                        "filename": $filename,
+                        "local_filename": $filename,
+                        "sha256": $sha,
+                        "tab": {
+                          "homebrew_version": "5.1.0",
+                          "changed_files": ["INSTALL_RECEIPT.json"],
+                          "source_modified_time": $source_mtime,
+                          "compiler": "clang",
+                          "runtime_dependencies": [],
+                          "arch": $carch,
+                          "built_on": {
+                            "os": "Macintosh",
+                            "os_version": "macOS 15",
+                            "cpu_family": $cpu_family
+                          }
+                        },
+                        "path_exec_files": ["bin/bluefin-cli"]
+                      }
+                    }
+                  }
+                }
+              }' > "../bluefin-cli-${VERSION}.${PLATFORM}.bottle.json"
+          done
+
+      - name: Upload darwin bottle artifacts
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
+        with:
+          name: bottle-darwin
+          path: '*.bottle.*'
+
   upload-bottles-to-pr:
-    needs: [update-formula, build-bottles]
+    needs: [update-formula, build-bottles, build-darwin-bottles]
     runs-on: ubuntu-24.04
     if: needs.update-formula.outputs.pr-number != ''
     permissions:
@@ -160,8 +293,6 @@ jobs:
 
       - name: Update formula with bottle SHAs
         run: |
-          mkdir -p "$(brew --repository)/Library/Taps/ublue-os"
-          cp -r . "$(brew --repository)/Library/Taps/ublue-os/homebrew-experimental-tap"
           brew bottle --merge --write --no-commit ./*.bottle.json
 
       - name: Commit bottle updates
@@ -170,7 +301,7 @@ jobs:
           message: 'chore: add bluefin-cli bottles for ${{ needs.update-formula.outputs.version }}'
 
   upload-bottles-to-release:
-    needs: [update-formula, build-bottles]
+    needs: [update-formula, build-bottles, build-darwin-bottles]
     runs-on: ubuntu-24.04
     if: needs.update-formula.outputs.pr-number == ''
     permissions:
@@ -179,6 +310,11 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           ref: ${{ needs.update-formula.outputs.working-branch }}
+
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Download all bottles
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
@@ -223,27 +359,14 @@ jobs:
       - name: Update formula with bottle SHAs
         if: success()
         run: |
-          if ls ./*.bottle.json 1> /dev/null 2>&1; then
-            export HOMEBREW_NO_AUTO_UPDATE=1
-            export HOMEBREW_NO_INSTALL_FROM_API=1
+          brew bottle --merge --write --no-commit ./*.bottle.json
 
-            if ! command -v brew &> /dev/null; then
-              /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-              eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-            fi
-
-            mkdir -p /home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/ublue-os
-            cp -r . /home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/ublue-os/homebrew-experimental-tap
-
-            brew bottle --merge --write --no-commit ./*.bottle.json
-
-            if git diff --quiet Formula/bluefin-cli.rb; then
-              echo "No changes"
-            else
-              git config --global user.email "action@github.com"
-              git config --global user.name "GitHub Action"
-              git add Formula/bluefin-cli.rb
-              git commit -m "chore: add bluefin-cli bottles for ${{ needs.update-formula.outputs.version }}"
-              git push origin main
-            fi
+          if git diff --quiet Formula/bluefin-cli.rb; then
+            echo "No changes"
+          else
+            git config --global user.email "action@github.com"
+            git config --global user.name "GitHub Action"
+            git add Formula/bluefin-cli.rb
+            git commit -m "chore: add bluefin-cli bottles for ${{ needs.update-formula.outputs.version }}"
+            git push origin main
           fi
