@@ -3,9 +3,9 @@ cask "intellij-idea-linux" do
        arm:   "-aarch64"
   os linux: "linux"
 
-  version "2025.3.2,253.30387.90"
-  sha256 x86_64_linux: "a3442c9f1953c66dcb0825e9b788c7e74efb586edbf1d30ef8b0df553fe136e4",
-         arm64_linux:  "caef18b0a82a6b10841e8cead00afc0c46ee0540f0b167a53d9c06ed92372621"
+  version "2026.1,261.22158.277"
+  sha256 x86_64_linux: "f57d3dba9970c774cf377583629aea540418e677ec6365570e76dea9cb2f3f9b",
+         arm64_linux:  "c235f664c35c20422c3ab28c850b86ea4ab7a05d9df9c027581a3a8c98be401b"
 
   url "https://download.jetbrains.com/idea/ideaIU-#{version.csv.first}#{arch}.tar.gz"
   name "IntelliJ IDEA Ultimate"
