@@ -3,9 +3,9 @@ cask "rider-linux" do
        arm:   "-aarch64"
   os linux: "linux"
 
-  version "2025.3.2,253.30387.148"
-  sha256 x86_64_linux: "704ea1cd7edcb04f87e65350a0d637b8c7a5eea20cde14b00377e5c936e9a7d0",
-         arm64_linux:  "f85adb6697a59685521ed285affad023f04f64d64dd995aaa85be927d31a24dc"
+  version "2025.3.3,253.31033.136"
+  sha256 x86_64_linux: "b0117f5c0e76a12143d5d126ce1be8edcc1fe441938b49b1d71dcf7286d0540b",
+         arm64_linux:  "40a073bac6514ceabed8fb5ef9212080dfe87692681ca688c011a92def63aa65"
 
   url "https://download.jetbrains.com/rider/JetBrains.Rider-#{version.csv.first}#{arch}.tar.gz"
   name "Rider"
