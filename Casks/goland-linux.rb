@@ -3,9 +3,9 @@ cask "goland-linux" do
        arm:   "-aarch64"
   os linux: "linux"
 
-  version "2025.3.1.1,253.29346.379"
-  sha256 x86_64_linux: "fb803ead33308978cab812367547fdd05f4a505686941db180ef815f4f569d6c",
-         arm64_linux:  "cc63e5cbe10bc90606aeae5ea0ea9eba30e9b4beda20e63428ae4555a48567c9"
+  version "2025.3.4,253.32098.60"
+  sha256 x86_64_linux: "4bc21159efaf891c6d2eb9c28103d1d09f10ace4abe72bed70ea70b2392af436",
+         arm64_linux:  "c9423785446fe63750d82ac02e9ef02d284bee91856b677b0544acb7015dda6a"
 
   url "https://download.jetbrains.com/go/goland-#{version.csv.first}#{arch}.tar.gz"
   name "GoLand"
