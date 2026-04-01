@@ -15,10 +15,6 @@ cask "craft-agents-linux" do
   depends_on formula: "squashfs"
 
   binary "squashfs-root/@craft-agentelectron", target: "craft-agents"
-  artifact "squashfs-root/usr/share/icons/hicolor/512x512/apps/@craft-agentelectron.png",
-           target: "#{Dir.home}/.local/share/icons/hicolor/512x512/apps/@craft-agentelectron.png"
-  artifact "squashfs-root/@craft-agentelectron.desktop",
-           target: "#{Dir.home}/.local/share/applications/@craft-agentelectron.desktop"
 
   preflight do
     appimage_path = "#{staged_path}/Craft-Agents-#{version}-linux-x64.AppImage"
@@ -28,13 +24,18 @@ cask "craft-agents-linux" do
   end
 
   postflight do
-    desktop_target = "#{Dir.home}/.local/share/applications/@craft-agentelectron.desktop"
-    if File.exist?(desktop_target)
-      desktop_content = File.read(desktop_target)
-      desktop_content.gsub!(/^Exec=AppRun/, "Exec=#{HOMEBREW_PREFIX}/bin/craft-agents")
-      desktop_content.gsub!(/^Icon=.*/,
-                            "Icon=#{Dir.home}/.local/share/icons/hicolor/512x512/apps/@craft-agentelectron.png")
-      File.write(desktop_target, desktop_content)
+    icons_dir = "#{Dir.home}/.local/share/icons/hicolor/512x512/apps"
+    apps_dir = "#{Dir.home}/.local/share/applications"
+    FileUtils.mkdir_p(icons_dir)
+    FileUtils.cp("#{staged_path}/squashfs-root/usr/share/icons/hicolor/512x512/apps/@craft-agentelectron.png", icons_dir)
+    FileUtils.cp("#{staged_path}/squashfs-root/@craft-agentelectron.desktop", apps_dir)
+    desktop_path = "#{apps_dir}/@craft-agentelectron.desktop"
+    if File.exist?(desktop_path)
+      content = File.read(desktop_path)
+      content.gsub!(/^Exec=AppRun/, "Exec=#{HOMEBREW_PREFIX}/bin/craft-agents")
+      content.gsub!(/^Icon=.*/, "Icon=#{icons_dir}/@craft-agentelectron.png")
+      content.gsub!(/^StartupWMClass=.*/, "StartupWMClass=@craft-agent/electron")
+      File.write(desktop_path, content)
     end
   end
 
