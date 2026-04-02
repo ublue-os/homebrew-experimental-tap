@@ -43,10 +43,25 @@ cask "emacs-app-linux" do
            target: "#{HOMEBREW_PREFIX}/opt/emacs-app-linux/libexec"
 
   preflight do
-    arch_str = Hardware::CPU.arm? ? "arm64" : "amd64"
+    arch_str = arch
 
     emacs_version = version.split("-").first
     staged_prefix = "#{staged_path}/emacs-pgtk-#{emacs_version}-fedora-latest-#{arch_str}"
+
+    # Defensive cleanup for Linux reinstall flows: ensure managed target
+    # directories don't pre-exist before artifact moves.
+    #
+    # Why this workaround exists here:
+    # - We cannot patch Homebrew core from this tap.
+    # - On Linux, `brew reinstall --cask` can hit a Homebrew Generic Artifact
+    #   move/quarantine path that incorrectly references macOS-only constants
+    #   (`Cask::Quarantine::MacOS`).
+    # - Removing these managed targets preflight keeps reinstall idempotent and
+    #   avoids that upstream Homebrew path until a core fix is available.
+    emacs_opt_root = "#{HOMEBREW_PREFIX}/opt/emacs-app-linux"
+    %w[lib share libexec].each do |subdir|
+      FileUtils.rm_rf("#{emacs_opt_root}/#{subdir}")
+    end
 
     # Make run-emacs.sh executable
     FileUtils.chmod "+x", "#{staged_prefix}/run-emacs.sh"
@@ -54,7 +69,12 @@ cask "emacs-app-linux" do
     # Create symlink to pdmp file in bin directory - Emacs automatically finds it there
     # Emacs looks for {binary-name}.pdmp next to the binary (e.g., emacs-30.2.pdmp)
     # Using a relative symlink saves ~12MB compared to copying
-    target_triplet = Hardware::CPU.arm? ? "aarch64-unknown-linux-gnu" : "x86_64-pc-linux-gnu"
+    target_triplet = case arch_str
+                     when "arm64"
+                       "aarch64-unknown-linux-gnu"
+                     else
+                       "x86_64-pc-linux-gnu"
+                     end
     pdmp_source = Dir.glob("#{staged_prefix}/libexec/emacs/#{emacs_version}/#{target_triplet}/*.pdmp").first
     if pdmp_source
       relative_path = "../libexec/emacs/#{emacs_version}/#{target_triplet}/#{File.basename(pdmp_source)}"
@@ -155,8 +175,11 @@ cask "emacs-app-linux" do
     emacs_wm_class = "emacs-#{emacs_version.tr(".", "-")}"
     desktop_files = %w[emacs emacsclient emacs-mail emacsclient-mail]
     desktop_files.each do |desktop_name|
-      src_desktop = "#{emacs_root}/share/applications/#{desktop_name}.desktop"
-      next unless File.exist?(src_desktop)
+      src_desktop = [
+        "#{emacs_root}/share/applications/#{desktop_name}.desktop",
+        "#{emacs_root}/share/emacs/#{emacs_version}/etc/#{desktop_name}.desktop",
+      ].find { |path| File.exist?(path) }
+      next unless src_desktop
 
       desktop_content = File.read(src_desktop)
       # Fix Exec paths to use homebrew bin directory
@@ -191,19 +214,19 @@ cask "emacs-app-linux" do
   uninstall_postflight do
     # Clean up desktop files
     %w[emacs emacsclient emacs-mail emacsclient-mail].each do |desktop_name|
-      FileUtils.rm("#{Dir.home}/.local/share/applications/#{desktop_name}.desktop")
+      FileUtils.rm_f("#{Dir.home}/.local/share/applications/#{desktop_name}.desktop")
     end
 
     # Clean up icons
     icon_sizes = %w[16x16 24x24 32x32 48x48 128x128 scalable]
     icon_sizes.each do |size|
       icon_ext = (size == "scalable") ? "svg" : "png"
-      FileUtils.rm("#{Dir.home}/.local/share/icons/hicolor/#{size}/apps/emacs.#{icon_ext}")
+      FileUtils.rm_f("#{Dir.home}/.local/share/icons/hicolor/#{size}/apps/emacs.#{icon_ext}")
     end
 
     # Clean up gschemas
-    FileUtils.rm("#{Dir.home}/.local/share/glib-2.0/schemas/gschemas.compiled")
-    FileUtils.rm("#{Dir.home}/.local/share/glib-2.0/schemas/org.gnu.emacs.defaults.gschema.xml")
+    FileUtils.rm_f("#{Dir.home}/.local/share/glib-2.0/schemas/gschemas.compiled")
+    FileUtils.rm_f("#{Dir.home}/.local/share/glib-2.0/schemas/org.gnu.emacs.defaults.gschema.xml")
 
     # Update caches
     if system("which gtk-update-icon-cache > /dev/null 2>&1")
