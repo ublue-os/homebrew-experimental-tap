@@ -41,6 +41,7 @@ cask "rog-control-center-linux" do
     rog_gui_share_dir = "#{xdg_share}/rog-gui"
     systemd_user_dir = "#{xdg_config}/systemd/user"
     asusd_config_dir = "#{xdg_config}/asusd"
+    asusd_user_service_src = "#{release_dir}/usr/lib/systemd/user/asusd-user.service"
 
     icon_cache_cmd = system("which gtk-update-icon-cache > /dev/null 2>&1")
     desktop_db_cmd = system("which update-desktop-database > /dev/null 2>&1")
@@ -75,13 +76,15 @@ cask "rog-control-center-linux" do
     )
     File.write("#{applications_dir}/rog-control-center.desktop", desktop_contents)
 
-    FileUtils.cp(
-      "#{release_dir}/usr/lib/systemd/user/asusd-user.service",
-      "#{systemd_user_dir}/asusd-user.service",
+    asusd_user_service = File.read(asusd_user_service_src)
+    asusd_user_service.gsub!("Environment=ASUSD_USER_EXEC=/usr/bin/asusd-user\n", "")
+    asusd_user_service.gsub!(
+      "ExecStart=${ASUSD_USER_EXEC}",
+      "ExecStart=#{HOMEBREW_PREFIX}/bin/asusd-user",
     )
+    File.write("#{systemd_user_dir}/asusd-user.service", asusd_user_service)
 
     File.write("#{asusd_config_dir}/asusd-user.env", <<~EOS)
-      ASUSD_USER_EXEC=#{HOMEBREW_PREFIX}/bin/asusd-user
       ASUSD_DATA_DIR=#{asusd_share_dir}
       ROG_GUI_DATA_DIR=#{rog_gui_share_dir}
       ROG_GUI_LAYOUTS_DIR=#{rog_gui_share_dir}/layouts

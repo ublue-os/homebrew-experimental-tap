@@ -39,6 +39,8 @@ cask "asusctl-linux" do
     udev_dir = "/etc/udev/rules.d"
     dbus_dir = "/etc/dbus-1/system.d"
     config_dir = "/etc/asusd"
+    asusd_service_src = "#{release_dir}/usr/lib/systemd/system/asusd.service"
+    asus_shutdown_service_src = "#{release_dir}/usr/lib/systemd/system/asus-shutdown.service"
 
     getenforce = %w[/usr/sbin/getenforce /usr/bin/getenforce /bin/getenforce].find do |path|
       File.executable?(path)
@@ -70,11 +72,21 @@ cask "asusctl-linux" do
            "#{release_dir}/usr/bin/asus-shutdown",
            "#{root_bin_dir}/asus-shutdown"
     system "sudo", "cp", "-a", "#{release_dir}/usr/share/asusd/.", root_asusd_dir
+    asusd_service = File.read(asusd_service_src)
+    asusd_service.gsub!("Environment=ASUSD_EXEC=/usr/bin/asusd\n", "")
+    asusd_service.gsub!("ExecStart=${ASUSD_EXEC}", "ExecStart=#{root_bin_dir}/asusd")
+    File.write("#{staged_path}/asusd.service", asusd_service)
+
+    asus_shutdown_service = File.read(asus_shutdown_service_src)
+    asus_shutdown_service.gsub!("Environment=ASUS_SHUTDOWN_EXEC=/usr/bin/asus-shutdown\n", "")
+    asus_shutdown_service.gsub!("ExecStart=${ASUS_SHUTDOWN_EXEC}", "ExecStart=#{root_bin_dir}/asus-shutdown")
+    File.write("#{staged_path}/asus-shutdown.service", asus_shutdown_service)
+
     system "sudo", "install", "-Dm0644",
-           "#{release_dir}/usr/lib/systemd/system/asusd.service",
+           "#{staged_path}/asusd.service",
            "#{systemd_dir}/asusd.service"
     system "sudo", "install", "-Dm0644",
-           "#{release_dir}/usr/lib/systemd/system/asus-shutdown.service",
+           "#{staged_path}/asus-shutdown.service",
            "#{systemd_dir}/asus-shutdown.service"
     system "sudo", "install", "-Dm0644",
            "#{release_dir}/usr/lib/udev/rules.d/99-asusd.rules",
@@ -84,8 +96,6 @@ cask "asusctl-linux" do
            "#{dbus_dir}/asusd.conf"
 
     File.write("#{staged_path}/asusd.env", <<~EOS)
-      ASUSD_EXEC=#{root_bin_dir}/asusd
-      ASUS_SHUTDOWN_EXEC=#{root_bin_dir}/asus-shutdown
       ASUSD_DATA_DIR=#{root_asusd_dir}
       ASUSCTL_AURA_SUPPORT_PATH=#{root_asusd_dir}/aura_support.ron
       ASUSCTL_DATA_DIRS=#{root_share_dir}
