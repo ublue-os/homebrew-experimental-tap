@@ -108,7 +108,7 @@ jobs:
           ref: ${{ needs.update-formula.outputs.working-branch }}
 
       - name: Set up Homebrew
-        uses: Homebrew/actions/setup-homebrew@6fa4c8300154020277b11ecfbab85263ca1d5a5a # master
+        uses: Homebrew/actions/setup-homebrew@59e6b20d96df1a3c9ccb0aa402676e01a4cc6ff3 # master
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -168,7 +168,7 @@ jobs:
           fi
 
       - name: Set up Homebrew
-        uses: Homebrew/actions/setup-homebrew@6fa4c8300154020277b11ecfbab85263ca1d5a5a # master
+        uses: Homebrew/actions/setup-homebrew@59e6b20d96df1a3c9ccb0aa402676e01a4cc6ff3 # master
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -200,7 +200,7 @@ jobs:
           ref: ${{ needs.update-formula.outputs.working-branch }}
 
       - name: Set up Homebrew
-        uses: Homebrew/actions/setup-homebrew@6fa4c8300154020277b11ecfbab85263ca1d5a5a # master
+        uses: Homebrew/actions/setup-homebrew@59e6b20d96df1a3c9ccb0aa402676e01a4cc6ff3 # master
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
