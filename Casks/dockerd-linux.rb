@@ -15,6 +15,7 @@ cask "dockerd-linux" do
   depends_on formula: "slirp4netns"
   depends_on formula: "fuse-overlayfs"
   depends_on formula: "iproute2"
+  depends_on formula: "iptables"
   depends_on formula: "docker"
   depends_on formula: "containerd"
   depends_on formula: "runc"
