@@ -1,0 +1,161 @@
+name: Build fw-fanctrl artifact
+
+on:
+  workflow_dispatch:
+    inputs:
+      fw_fanctrl_tag:
+        description: 'Upstream fw-fanctrl tag (e.g. v1.0.4)'
+        required: true
+        default: 'v1.0.4'
+      build_revision:
+        description: 'Tap build revision (bump if rebuilding same upstream tag)'
+        required: true
+        default: '1'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Set version vars
+        id: vars
+        env:
+          TAG_INPUT: ${{ inputs.fw_fanctrl_tag }}
+          REV_INPUT: ${{ inputs.build_revision }}
+        run: |
+          TAG="${TAG_INPUT}"
+          VERSION="${TAG#v}"
+          REV="${REV_INPUT}"
+          ARCH="x86_64"
+          ROOT="fw-fanctrl-${VERSION}-${ARCH}"
+          RELEASE_TAG="fw-fanctrl-${VERSION}-${REV}"
+          {
+            echo "tag=${TAG}"
+            echo "version=${VERSION}"
+            echo "rev=${REV}"
+            echo "arch=${ARCH}"
+            echo "root=${ROOT}"
+            echo "release_tag=${RELEASE_TAG}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Check out upstream fw-fanctrl
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          repository: TamtamHero/fw-fanctrl
+          ref: ${{ steps.vars.outputs.tag }}
+          path: upstream
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+
+      - name: Install shiv
+        run: pip install --upgrade shiv
+
+      - name: Build fw-fanctrl zipapp
+        env:
+          ROOT: ${{ steps.vars.outputs.root }}
+        run: |
+          mkdir -p "build/${ROOT}/usr/bin"
+          shiv --console-script fw-fanctrl \
+               --python '/usr/bin/env python3' \
+               --compressed \
+               --output-file "build/${ROOT}/usr/bin/fw-fanctrl" \
+               ./upstream
+          chmod +x "build/${ROOT}/usr/bin/fw-fanctrl"
+
+      - name: Fetch pinned ectool from GitLab
+        env:
+          ROOT: ${{ steps.vars.outputs.root }}
+        run: |
+          JOB_ID=$(cat upstream/fetch/ectool/linux/gitlab_job_id)
+          EXPECTED_SHA=$(cat upstream/fetch/ectool/linux/hash.sha256)
+          echo "ectool gitlab job_id=${JOB_ID} expected_sha256=${EXPECTED_SHA}"
+          curl -fsSL -o artifact.zip \
+            "https://gitlab.howett.net/DHowett/ectool/-/jobs/${JOB_ID}/artifacts/download?file_type=archive"
+          ACTUAL_SHA=$(sha256sum artifact.zip | awk '{print $1}')
+          if [ "$ACTUAL_SHA" != "$EXPECTED_SHA" ]; then
+            echo "ectool artifact sha256 mismatch: $ACTUAL_SHA != $EXPECTED_SHA" >&2
+            exit 1
+          fi
+          unzip -j artifact.zip '_build/src/ectool' -d "build/${ROOT}/usr/bin/"
+          chmod +x "build/${ROOT}/usr/bin/ectool"
+
+      - name: Assemble service, sleep hook, and config
+        env:
+          ROOT: ${{ steps.vars.outputs.root }}
+        run: |
+          BUILD="build/${ROOT}"
+          INSTALL_BIN="/opt/ublue-fw-fanctrl/bin/fw-fanctrl"
+          SYSCONF_DIR="/etc"
+          PATH_ENV="/opt/ublue-fw-fanctrl/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin"
+
+          mkdir -p "${BUILD}/usr/lib/systemd/system"
+          mkdir -p "${BUILD}/usr/lib/systemd/system-sleep"
+          mkdir -p "${BUILD}/usr/share/fw-fanctrl"
+
+          sed \
+            -e "s|%PYTHON_SCRIPT_INSTALLATION_PATH%|${INSTALL_BIN}|g" \
+            -e "s|%SYSCONF_DIRECTORY%|${SYSCONF_DIR}|g" \
+            -e "s| %NO_BATTERY_SENSOR_OPTION%||g" \
+            -e "/^\[Service\]/a Environment=PATH=${PATH_ENV}" \
+            upstream/services/fw-fanctrl.service \
+            > "${BUILD}/usr/lib/systemd/system/fw-fanctrl.service"
+
+          sed \
+            -e "s|%PYTHON_SCRIPT_INSTALLATION_PATH%|${INSTALL_BIN}|g" \
+            upstream/services/system-sleep/fw-fanctrl-suspend \
+            > "${BUILD}/usr/lib/systemd/system-sleep/fw-fanctrl-suspend"
+          chmod 0755 "${BUILD}/usr/lib/systemd/system-sleep/fw-fanctrl-suspend"
+
+          cp upstream/src/fw_fanctrl/_resources/config.json \
+             "${BUILD}/usr/share/fw-fanctrl/config.json"
+          cp upstream/src/fw_fanctrl/_resources/config.schema.json \
+             "${BUILD}/usr/share/fw-fanctrl/config.schema.json"
+
+      - name: Make tarball
+        env:
+          ROOT: ${{ steps.vars.outputs.root }}
+        run: |
+          tar -C build -czf "${ROOT}.tar.gz" "${ROOT}"
+          sha256sum "${ROOT}.tar.gz" | tee "${ROOT}.tar.gz.sha256"
+
+      - name: Summarise artifact
+        env:
+          ROOT: ${{ steps.vars.outputs.root }}
+          RELEASE_TAG: ${{ steps.vars.outputs.release_tag }}
+        run: |
+          {
+            echo "## fw-fanctrl artifact"
+            echo ""
+            echo "- Release tag: \`${RELEASE_TAG}\`"
+            echo "- Tarball: \`${ROOT}.tar.gz\`"
+            echo "- sha256:"
+            echo '```'
+            cat "${ROOT}.tar.gz.sha256"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Create or update release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ROOT: ${{ steps.vars.outputs.root }}
+          VERSION: ${{ steps.vars.outputs.version }}
+          REV: ${{ steps.vars.outputs.rev }}
+          TAG: ${{ steps.vars.outputs.tag }}
+          RELEASE_TAG: ${{ steps.vars.outputs.release_tag }}
+        run: |
+          if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" "${ROOT}.tar.gz" \
+              --clobber --repo "$GITHUB_REPOSITORY"
+          else
+            gh release create "$RELEASE_TAG" "${ROOT}.tar.gz" \
+              --title "fw-fanctrl ${VERSION} (build ${REV})" \
+              --notes "Bundled build of TamtamHero/fw-fanctrl@${TAG} for ublue-os/homebrew-experimental-tap." \
+              --repo "$GITHUB_REPOSITORY"
+          fi
