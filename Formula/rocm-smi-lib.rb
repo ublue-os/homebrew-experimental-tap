@@ -32,23 +32,22 @@ class RocmSmiLib < Formula
   end
 
   def caveats
-    lib_path = HOMEBREW_PREFIX/"lib"
-    conf_file = "/etc/ld.so.conf.d/homebrew.conf"
-    fish_conf = "#{Dir.home}/.config/fish/conf.d/homebrew-lib.fish"
+    conf_file = "/etc/ld.so.conf.d/rocm-smi-lib.conf"
+    fish_conf = "#{Dir.home}/.config/fish/conf.d/rocm-smi-lib.fish"
 
     <<~EOS
       librocm_smi64.so has been installed to #{lib}.
 
-      For btop and other tools to find it, the Homebrew lib directory must be
-      in the dynamic linker path. Choose one of these options:
+      For btop and other tools to find it, its lib directory must be in the
+      dynamic linker path. Choose one of these options:
 
       Option A – system-wide (survives reboots on bootc/ostree, recommended):
-        sudo sh -c 'echo "#{lib_path}" >> #{conf_file} && ldconfig'
+        sudo sh -c 'echo "#{lib}" >> #{conf_file} && ldconfig'
 
       Option B – current user only (fish shell, no sudo required):
-        echo 'set -gx LD_LIBRARY_PATH "#{lib_path}" $LD_LIBRARY_PATH' \\
+        echo 'set -gx LD_LIBRARY_PATH "#{lib}" $LD_LIBRARY_PATH' \\
           >> #{fish_conf}
-        set -gx LD_LIBRARY_PATH "#{lib_path}" $LD_LIBRARY_PATH
+        set -gx LD_LIBRARY_PATH "#{lib}" $LD_LIBRARY_PATH
 
       Then restart any tool that uses librocm_smi64.so (e.g. btop).
     EOS
