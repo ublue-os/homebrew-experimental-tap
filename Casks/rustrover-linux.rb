@@ -3,9 +3,9 @@ cask "rustrover-linux" do
        arm:   "-aarch64"
   os linux: "linux"
 
-  version "2026.1,261.22158.331"
-  sha256 x86_64_linux: "aa23a0007cffb429f21309634f2d43d2c241856a4e5d90827f952aeba3d98f39",
-         arm64_linux:  "8d4eb55d0fb7ce5887df2ea7cfaa3c53f0eb464676bece1f7fc15dfd13dbd1ad"
+  version "2026.1.1,261.23567.140"
+  sha256 x86_64_linux: "5189639b8decfd4384be4d0f7a2a360abb1dc742b953949ea39eccdf80350357",
+         arm64_linux:  "1540c2178a4eb68be304a68d5747448dce4fc2c0cb0574d31e7737fa834353b0"
 
   url "https://download.jetbrains.com/rustrover/RustRover-#{version.csv.first}#{arch}.tar.gz"
   name "RustRover"
