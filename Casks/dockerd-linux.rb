@@ -12,7 +12,6 @@ cask "dockerd-linux" do
     regex(/href=.*?docker[._-]v?(\d+(?:\.\d+)+)\.tgz/i)
   end
 
-  conflicts_with "docker-engine"
   depends_on formula: "slirp4netns"
   depends_on formula: "fuse-overlayfs"
   depends_on formula: "iproute2"
@@ -103,6 +102,10 @@ cask "dockerd-linux" do
   zap trash: "~/.config/systemd/user/dockerd-rootless.service"
 
   caveats <<~EOS
+    This cask conflicts with the 'docker-engine' formula. If it is installed,
+    uninstall it first:
+      brew uninstall docker-engine
+
     Use 'dockerd-rootless --iptables=false' to start
 
     To enable and start the systemd service:
