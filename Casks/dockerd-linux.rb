@@ -12,7 +12,7 @@ cask "dockerd-linux" do
     regex(/href=.*?docker[._-]v?(\d+(?:\.\d+)+)\.tgz/i)
   end
 
-  conflicts_with "docker-engine", because: "You already have moby installed, uninstall it to use docker"
+  conflicts_with "docker-engine"
   depends_on formula: "slirp4netns"
   depends_on formula: "fuse-overlayfs"
   depends_on formula: "iproute2"
