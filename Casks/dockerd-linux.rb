@@ -102,6 +102,10 @@ cask "dockerd-linux" do
   zap trash: "~/.config/systemd/user/dockerd-rootless.service"
 
   caveats <<~EOS
+    This cask conflicts with the 'docker-engine' formula. If it is installed,
+    uninstall it first:
+      brew uninstall docker-engine
+
     Use 'dockerd-rootless --iptables=false' to start
 
     To enable and start the systemd service:
