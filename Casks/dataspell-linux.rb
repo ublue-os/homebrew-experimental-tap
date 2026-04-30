@@ -3,9 +3,9 @@ cask "dataspell-linux" do
        arm:   "-aarch64"
   os linux: "linux"
 
-  version "2026.1,261.22158.332"
-  sha256 x86_64_linux: "15c6df941cc7b125af91756dae596dbdbdcf8e284ff75b34826df0995df3b910",
-         arm64_linux:  "24a016d18b703438e4dd49f87bf7168a9ade008f2925a2602cdbf1ee83b0e114"
+  version "2026.1.1,261.23567.176"
+  sha256 x86_64_linux: "d73edf6923b65206ff70dfc8854bce693f671728e2d8bef7dd8eaf2a9c1198e8",
+         arm64_linux:  "4fb227585e8ad7fdbe18bd74cfaab1c7e8e7f8dfe29c39c275cc8d76b3aed3db"
 
   url "https://download.jetbrains.com/python/dataspell-#{version.csv.first}#{arch}.tar.gz"
   name "DataSpell"
