@@ -4,8 +4,8 @@ cask "clion-linux" do
   os linux: "linux"
 
   version "2026.1.1,261.23567.135"
-  sha256 intel: "e92d3e012585eddbb4b47c9f2eeffa666c7298fefd9b76f0c4ec504c57eca09b",
-         arm:   "9e2687157c573e1d621f6e9a0261c44b617fc5b7e43c9d7c7ab0d71598a09fe8"
+  sha256 on_arch_conditional intel: "e92d3e012585eddbb4b47c9f2eeffa666c7298fefd9b76f0c4ec504c57eca09b",
+                             arm:   "9e2687157c573e1d621f6e9a0261c44b617fc5b7e43c9d7c7ab0d71598a09fe8"
 
   url "https://download.jetbrains.com/cpp/CLion-#{version.csv.first}#{arch}.tar.gz"
   name "CLion"

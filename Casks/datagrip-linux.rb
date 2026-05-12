@@ -4,8 +4,8 @@ cask "datagrip-linux" do
   os linux: "linux"
 
   version "2026.1.3,261.24374.56"
-  sha256 intel: "5f1c2f5e269601f2b7d7c0636f328f2d50de30194eaf9045b83d9ba94f3ed76a",
-         arm:   "1beb629c3ffea8ce47551e2ed84d1c357b5d56c6f080af3f3dd67789cea17f83"
+  sha256 on_arch_conditional intel: "5f1c2f5e269601f2b7d7c0636f328f2d50de30194eaf9045b83d9ba94f3ed76a",
+                             arm:   "1beb629c3ffea8ce47551e2ed84d1c357b5d56c6f080af3f3dd67789cea17f83"
 
   url "https://download.jetbrains.com/datagrip/datagrip-#{version.csv.first}#{arch}.tar.gz"
   name "DataGrip"
