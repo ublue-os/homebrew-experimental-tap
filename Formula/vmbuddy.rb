@@ -17,6 +17,6 @@ class Vmbuddy < Formula
   end
 
   test do
-    assert_match "usage", shell_output("#{bin}/vmbuddy --help 2>&1", 1)
+    assert_match "Usage", shell_output("#{bin}/vmbuddy --help 2>&1")
   end
 end
