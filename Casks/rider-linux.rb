@@ -4,12 +4,8 @@ cask "rider-linux" do
   os linux: "linux"
 
   version "2026.1.1,261.23567.144"
-  on_intel do
-    sha256 "0e32cdf2fab450312624a5c4a4b7ae12382655605e50a128eb8ef514930fcc23"
-  end
-  on_arm do
-    sha256 "6b88c56354e41dbc2d0b3964f7f8605f89480a78ee39333b6a11a96d01dcfdce"
-  end
+  sha256 intel: "0e32cdf2fab450312624a5c4a4b7ae12382655605e50a128eb8ef514930fcc23",
+         arm:   "6b88c56354e41dbc2d0b3964f7f8605f89480a78ee39333b6a11a96d01dcfdce"
 
   url "https://download.jetbrains.com/rider/JetBrains.Rider-#{version.csv.first}#{arch}.tar.gz"
   name "Rider"

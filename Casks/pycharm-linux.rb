@@ -4,12 +4,8 @@ cask "pycharm-linux" do
   os linux: "linux"
 
   version "2026.1.1,261.23567.174"
-  on_intel do
-    sha256 "6f81c5874438965f2566001ad265e727c02e4db7d0b57287d86f3479fd647891"
-  end
-  on_arm do
-    sha256 "d777036e072628beac6f5300149fdef26e83351dbd84c399476ba8da209a0eaa"
-  end
+  sha256 intel: "6f81c5874438965f2566001ad265e727c02e4db7d0b57287d86f3479fd647891",
+         arm:   "d777036e072628beac6f5300149fdef26e83351dbd84c399476ba8da209a0eaa"
 
   url "https://download.jetbrains.com/python/pycharm-#{version.csv.first}#{arch}.tar.gz"
   name "PyCharm"

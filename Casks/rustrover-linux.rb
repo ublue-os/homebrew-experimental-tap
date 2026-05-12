@@ -4,12 +4,8 @@ cask "rustrover-linux" do
   os linux: "linux"
 
   version "2026.1.1,261.23567.140"
-  on_intel do
-    sha256 "5189639b8decfd4384be4d0f7a2a360abb1dc742b953949ea39eccdf80350357"
-  end
-  on_arm do
-    sha256 "1540c2178a4eb68be304a68d5747448dce4fc2c0cb0574d31e7737fa834353b0"
-  end
+  sha256 intel: "5189639b8decfd4384be4d0f7a2a360abb1dc742b953949ea39eccdf80350357",
+         arm:   "1540c2178a4eb68be304a68d5747448dce4fc2c0cb0574d31e7737fa834353b0"
 
   url "https://download.jetbrains.com/rustrover/RustRover-#{version.csv.first}#{arch}.tar.gz"
   name "RustRover"
