@@ -37,7 +37,7 @@ jobs:
           } >> "$GITHUB_ENV"
 
       - name: Configure git
-        uses: Homebrew/actions/git-user-config@c8884c2ac585f47e5cba71e5025e52a7738f2a28 # main
+        uses: Homebrew/actions/git-user-config@8eb7f2efa6ab636da09aef605b497fd5b8a7587d # main
         with:
           username: lambdaclan
 
