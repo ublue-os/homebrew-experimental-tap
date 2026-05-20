@@ -4,10 +4,8 @@ cask "antigravity-cli-linux" do
 
   version "0.1.0,5196844826651648"
 
-  on_linux do
-    sha256 arm64_linux:  "9cf45fb073a4c7f8299e05bb0c8f33be30373db74abc0210f184f59150fbc54f",
-           x86_64_linux: "5fb55952d23691526bd3191dc5fad6a1d5310a27707661ebabc474cd21287df5"
-  end
+  sha256 on_arch_conditional(arm64_linux:  "9cf45fb073a4c7f8299e05bb0c8f33be30373db74abc0210f184f59150fbc54f",
+                             x86_64_linux: "5fb55952d23691526bd3191dc5fad6a1d5310a27707661ebabc474cd21287df5")
 
   url "https://storage.googleapis.com/antigravity-public/antigravity-cli/v#{version.csv.first}-#{version.csv.second}/linux-#{arch}/cli_linux_#{binary_arch}",
       verified: "storage.googleapis.com/antigravity-public/"
