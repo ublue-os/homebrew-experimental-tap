@@ -8,13 +8,19 @@ cask "antigravity-cli-linux" do
            x86_64_linux: "5fb55952d23691526bd3191dc5fad6a1d5310a27707661ebabc474cd21287df5"
   end
 
-  url "https://storage.googleapis.com/antigravity-public/antigravity-cli/v#{version.csv.first}-#{version.csv.second}/linux-#{arch}/cli_linux_#{on_arch_conditional arm: "arm64", intel: "x64"}",
-      verified: "storage.googleapis.com/antigravity-public/"
+  url do
+    url_arch = on_arch_conditional(arm: "arm64", intel: "x64")
+    "https://storage.googleapis.com/antigravity-public/antigravity-cli/v#{version.csv.first}-#{version.csv.second}/linux-#{arch}/cli_linux_#{url_arch}"
+  end
+  verified "storage.googleapis.com/antigravity-public/"
   name "Antigravity CLI"
   desc "Command-line interface for Antigravity"
   homepage "https://antigravity.google/"
 
-  binary "cli_linux_#{on_arch_conditional arm: "arm64", intel: "x64"}", target: "antigravity"
+  binary do
+    binary_arch = on_arch_conditional(arm: "arm64", intel: "x64")
+    "cli_linux_#{binary_arch}"
+  end, target: "antigravity"
 
   caveats <<~EOS
     To complete Antigravity CLI setup, authenticate:
