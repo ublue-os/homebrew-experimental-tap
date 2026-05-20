@@ -1,7 +1,8 @@
 class AntigravitySdk < Formula
   desc "Python SDK for building with Google Antigravity"
   homepage "https://github.com/google-antigravity/antigravity-sdk-python"
-  url "https://github.com/google-antigravity/antigravity-sdk-python.git", tag: "latest"
+  url "https://github.com/google-antigravity/antigravity-sdk-python.git", branch: "main"
+  version "0.1.0"
   license "Apache-2.0"
 
   depends_on "python@3.12"

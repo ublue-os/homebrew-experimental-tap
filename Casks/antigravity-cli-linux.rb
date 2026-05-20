@@ -1,33 +1,20 @@
 cask "antigravity-cli-linux" do
-  arch arm: "arm", intel: "x64"
+  folder_arch = on_arch_conditional arm: "arm", intel: "x64"
+  file_arch = on_arch_conditional arm: "arm64", intel: "x64"
 
-  version "0.1.0,5196844826651648"
+  version "1.0.0,6695125380890624"
 
-  on_linux do
-    sha256 arm64_linux:  "9cf45fb073a4c7f8299e05bb0c8f33be30373db74abc0210f184f59150fbc54f",
-           x86_64_linux: "5fb55952d23691526bd3191dc5fad6a1d5310a27707661ebabc474cd21287df5"
-  end
+  sha256 on_arch_conditional arm: "6aee9287263e3bc9b6c8727da74b44412b6de546f0df82a77441e8589c111908",
+                             intel: "884deaaba937d9d299d3e2b44506fdd72429eeaec6c722bba0986a6bbba9061a"
 
-  url do
-    url_arch = on_arch_conditional(arm: "arm64", intel: "x64")
-    "https://storage.googleapis.com/antigravity-public/antigravity-cli/v#{version.csv.first}-#{version.csv.second}/linux-#{arch}/cli_linux_#{url_arch}"
-  end
-  verified "storage.googleapis.com/antigravity-public/"
-  name "Antigravity CLI"
-  desc "Command-line interface for Antigravity"
-  homepage "https://antigravity.google/"
+  url "https://storage.googleapis.com/antigravity-public/antigravity-cli/#{version.csv.first}-#{version.csv.second}/linux-#{folder_arch}/cli_linux_#{file_arch}.tar.gz",
+      verified: "storage.googleapis.com/antigravity-public/antigravity-cli/"
+  name "Google Antigravity CLI"
+  desc "Terminal interface for Antigravity agents"
+  homepage "https://antigravity.google/product/antigravity-cli"
 
-  binary do
-    binary_arch = on_arch_conditional(arm: "arm64", intel: "x64")
-    "cli_linux_#{binary_arch}"
-  end, target: "antigravity"
+  binary "antigravity", target: "antigravity"
+  binary "antigravity", target: "agy"
 
-  caveats <<~EOS
-    To complete Antigravity CLI setup, authenticate:
-      antigravity auth login
-  EOS
-
-  test do
-    system bin/"antigravity", "--version"
-  end
+  zap trash: "~/.gemini/antigravity-cli"
 end
