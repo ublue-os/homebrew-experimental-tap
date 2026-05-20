@@ -1,4 +1,4 @@
-cask "antigravity-ide-linux" do
+cask "antigravity-linux" do
   arch arm: "arm", intel: "x64"
   os linux: "linux"
 
@@ -27,7 +27,6 @@ cask "antigravity-ide-linux" do
   end
 
   binary "#{staged_path}/Antigravity IDE/bin/antigravity-ide", target: "antigravity"
-  binary "#{staged_path}/Antigravity IDE/bin/antigravity-ide", target: "agy"
   bash_completion "#{staged_path}/Antigravity IDE/resources/completions/bash/antigravity-ide"
   zsh_completion  "#{staged_path}/Antigravity IDE/resources/completions/zsh/_antigravity-ide"
   artifact "antigravity.desktop",
