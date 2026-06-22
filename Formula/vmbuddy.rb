@@ -1,8 +1,8 @@
 class Vmbuddy < Formula
   desc "QEMU wrapper with sensible defaults"
   homepage "https://github.com/tulilirockz/vmbuddy"
-  url "https://github.com/tulilirockz/vmbuddy/archive/refs/tags/0.1.0.tar.gz"
-  sha256 "065ceb3e72987c0a60e28e138c9ca410154279fefc60b1495822a5d6b8135345"
+  url "https://github.com/tulilirockz/vmbuddy/archive/refs/tags/0.1.3.tar.gz"
+  sha256 "3906b7e8aeae3af48e41f1230e8cc2bc5e9c67a6f814070a7d84257834729873"
   license "BSD-3-Clause"
 
   livecheck do
