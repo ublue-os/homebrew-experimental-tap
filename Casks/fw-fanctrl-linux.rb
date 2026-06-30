@@ -1,6 +1,6 @@
 cask "fw-fanctrl-linux" do
-  version "1.0.4,1"
-  sha256 "1eaf2e48cc39a3e98f978c0ce8efb472d26ffb0277d5f29c8e614705e01beee7"
+  version "1.0.4,2"
+  sha256 "d716bf48c72504264a06cd58aa2865d533485a504921f99f9e2587f769606855"
 
   release_tag = "fw-fanctrl-#{version.csv.first}-#{version.csv.second}"
   release_root = "fw-fanctrl-#{version.csv.first}-x86_64"
@@ -89,18 +89,13 @@ cask "fw-fanctrl-linux" do
     end
 
     if selinux_mode != "Disabled"
-      resolved_root_bin = begin
-        File.realpath(root_bin_dir)
-      rescue
-        root_bin_dir
-      end
-      bin_pattern = "#{resolved_root_bin}(/.*)?"
+      bin_pattern = "#{root_bin_dir}(/.*)?"
 
       if semanage
         added = system "sudo", semanage, "fcontext", "-a", "-t", "bin_t", bin_pattern
         system "sudo", semanage, "fcontext", "-m", "-t", "bin_t", bin_pattern unless added
       elsif chcon
-        system "sudo", chcon, "-R", "-t", "bin_t", resolved_root_bin
+        system "sudo", chcon, "-R", "-t", "bin_t", root_bin_dir
       end
 
       if restorecon
@@ -141,14 +136,7 @@ cask "fw-fanctrl-linux" do
       "Disabled"
     end
 
-    if selinux_mode != "Disabled" && semanage
-      resolved_root_bin = begin
-        File.realpath(root_bin_dir)
-      rescue
-        root_bin_dir
-      end
-      system "sudo", semanage, "fcontext", "-d", "#{resolved_root_bin}(/.*)?"
-    end
+    system "sudo", semanage, "fcontext", "-d", "#{root_bin_dir}(/.*)?" if selinux_mode != "Disabled" && semanage
 
     system "sudo", "rm", "-f", "#{systemd_dir}/fw-fanctrl.service"
     system "sudo", "rm", "-f", "#{sleep_dir}/fw-fanctrl-suspend"
@@ -174,7 +162,7 @@ cask "fw-fanctrl-linux" do
     To change fan curves, edit /etc/fw-fanctrl/config.json, then:
       sudo fw-fanctrl reload
 
-    Requires Python 3.12+ on the system (default on Bluefin and Bazzite).
+    Requires system CPython 3.14 at /usr/bin/python3.14.
     Framework laptops only; upstream: https://github.com/TamtamHero/fw-fanctrl
   EOS
 end
