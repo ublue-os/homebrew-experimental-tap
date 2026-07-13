@@ -8,6 +8,12 @@ on:
 
 jobs:
   test-bot:
+    env:
+      # test-bot writes tap trust under its temporary HOME. If XDG_CONFIG_HOME is set,
+      # nested `brew` commands ignore that trust store and `brew doctor` reports this
+      # tap as untrusted.
+      XDG_CONFIG_HOME: ""
+      HOMEBREW_NO_REQUIRE_TAP_TRUST: "1"
     strategy:
       matrix:
         os: [ubuntu-24.04, ubuntu-24.04-arm]
@@ -20,7 +26,7 @@ jobs:
     steps:
       - name: Set up Homebrew
         id: set-up-homebrew
-        uses: Homebrew/actions/setup-homebrew@6eaeff80e7e5c43087c0e5eb5aa82120399e9c91 # main
+        uses: Homebrew/actions/setup-homebrew@18fcb8e3e06b4247c676c506750dc95ea7226479 # main
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -35,7 +41,16 @@ jobs:
 
       - run: brew test-bot --only-setup
 
-      - run: brew test-bot --only-tap-syntax
+      - run: brew test-bot --only-tap-syntax --stable
+
+      - name: Style changed tap files
+        if: github.event_name == 'pull_request'
+        run: |
+          changed_files="$(git diff --name-only --diff-filter=ACMR "${{ github.event.pull_request.base.sha }}...HEAD" -- Formula Casks)"
+          if [ -n "$changed_files" ]; then
+            # shellcheck disable=SC2086
+            brew style $changed_files
+          fi
       - run: brew test-bot --only-formulae
         if: github.event_name == 'pull_request'
 
