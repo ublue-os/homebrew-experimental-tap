@@ -48,6 +48,7 @@ jobs:
         run: |
           changed_files="$(git diff --name-only --diff-filter=ACMR "${{ github.event.pull_request.base.sha }}...HEAD" -- Formula Casks)"
           if [ -n "$changed_files" ]; then
+            # shellcheck disable=SC2086
             brew style $changed_files
           fi
       - run: brew test-bot --only-formulae
