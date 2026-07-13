@@ -8,6 +8,8 @@ on:
 jobs:
   bump:
     runs-on: ubuntu-24.04
+    env:
+      HOMEBREW_NO_REQUIRE_TAP_TRUST: "1"
     permissions:
       contents: write
       pull-requests: write
