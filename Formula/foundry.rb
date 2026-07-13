@@ -32,23 +32,23 @@ class Foundry < Formula
   depends_on "universal-ctags"
 
   def install
-    ENV.prepend_path "PKG_CONFIG_PATH", Formula["glib"].opt_lib/"pkgconfig"
-    ENV.prepend_path "PKG_CONFIG_PATH", Formula["libgit2"].opt_lib/"pkgconfig"
-    ENV.prepend_path "PKG_CONFIG_PATH", Formula["gettext"].opt_lib/"pkgconfig"
+    ENV.prepend_path "PKG_CONFIG_PATH", formula_opt_lib("glib")/"pkgconfig"
+    ENV.prepend_path "PKG_CONFIG_PATH", formula_opt_lib("libgit2")/"pkgconfig"
+    ENV.prepend_path "PKG_CONFIG_PATH", formula_opt_lib("gettext")/"pkgconfig"
 
     # Set C_INCLUDE_PATH to ensure headers are found
     include_dirs = [
-      Formula["glib"].opt_include/"glib-2.0",
-      Formula["glib"].opt_lib/"glib-2.0/include",
-      Formula["glib"].opt_include/"gio-unix-2.0",
-      Formula["libxml2"].opt_include/"libxml2",
-      Formula["libdex"].opt_include/"libdex-1",
-      Formula["json-glib"].opt_include/"json-glib-1.0",
-      Formula["libpeas"].opt_include/"libpeas-2",
-      Formula["template-glib"].opt_include/"template-glib-1.0",
-      Formula["libsoup"].opt_include/"libsoup-3.0",
-      Formula["gom"].opt_include/"gom-1.0",
-      Formula["sysprof"].opt_include/"sysprof-6",
+      formula_opt_include("glib")/"glib-2.0",
+      formula_opt_lib("glib")/"glib-2.0/include",
+      formula_opt_include("glib")/"gio-unix-2.0",
+      formula_opt_include("libxml2")/"libxml2",
+      formula_opt_include("libdex")/"libdex-1",
+      formula_opt_include("json-glib")/"json-glib-1.0",
+      formula_opt_include("libpeas")/"libpeas-2",
+      formula_opt_include("template-glib")/"template-glib-1.0",
+      formula_opt_include("libsoup")/"libsoup-3.0",
+      formula_opt_include("gom")/"gom-1.0",
+      formula_opt_include("sysprof")/"sysprof-6",
     ]
 
     ENV["C_INCLUDE_PATH"] = include_dirs.join(":")
@@ -97,6 +97,6 @@ class Foundry < Formula
   end
 
   test do
-    system "#{bin}/foundry", "--help"
+    system bin/"foundry", "--help"
   end
 end
