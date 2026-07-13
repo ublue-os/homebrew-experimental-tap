@@ -1,6 +1,6 @@
 cask "dockerd-linux" do
-  version "29.5.2"
-  sha256 "6d81a5be56232d9cc047e60b7110a087793536ae5a8b465719cd303f05fc56ec"
+  version "29.6.1"
+  sha256 "b0df4a43a98d7ecb708acbdb5a34a3416e13b6e39bcbbdf296f51f0f3442b29f"
 
   url "https://download.docker.com/linux/static/stable/x86_64/docker-#{version}.tgz"
   name "Dockerd"
@@ -27,7 +27,6 @@ cask "dockerd-linux" do
   # Docker rootless extras
   binary "docker-rootless-extras/dockerd-rootless.sh", target: "dockerd-rootless"
   binary "docker-rootless-extras/rootlesskit"
-  binary "docker-rootless-extras/vpnkit"
 
   preflight do
     extras_url = "https://download.docker.com/linux/static/stable/x86_64/docker-rootless-extras-#{version}.tgz"
