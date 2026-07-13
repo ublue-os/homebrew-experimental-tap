@@ -1,8 +1,8 @@
 class Distrobox2 < Formula
   desc "Use any linux distribution inside your terminal. (Release Candidate for v2)"
   homepage "https://github.com/89luca89/distrobox"
-  url "https://github.com/89luca89/distrobox/archive/refs/tags/2.0.0-rc.2.tar.gz"
-  sha256 "515dc733acf7fe716fd9d243f40fbcb4898b307094039c8106aafb60bbdd705e"
+  url "https://github.com/89luca89/distrobox/archive/refs/tags/2.0.0-rc.3.tar.gz"
+  sha256 "d3f011429cebb8511ea30e0526216a4cb60b9545b45a8e20fa8852852e484514"
   license "GPL-3.0-or-later"
   head "https://github.com/89luca89/distrobox.git", branch: "main"
 
@@ -13,7 +13,7 @@ class Distrobox2 < Formula
   end
 
   bottle do
-    root_url "https://github.com/ublue-os/homebrew-experimental-tap/releases/download/distrobox2-2.0.0-rc.2"
+    root_url "https://github.com/ublue-os/homebrew-experimental-tap/releases/download/distrobox2-2.0.0-rc.3"
     sha256 cellar: :any_skip_relocation, arm64_linux:  "c1a5328237d6374d36a959a58f0ad97358ead9a8115f9dfef7b0db6dc3374946"
     sha256 cellar: :any_skip_relocation, x86_64_linux: "52c23dc6d3f98c82323eab5dbef5dc19ed42e500ca87130ab2b51f0cce258b74"
   end

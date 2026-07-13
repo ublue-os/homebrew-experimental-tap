@@ -8,7 +8,7 @@ class AntigravitySdk < Formula
   depends_on "python@3.12"
 
   def install
-    python = Formula["python@3.12"].opt_bin/"python3.12"
+    python = formula_opt_bin("python@3.12")/"python3.12"
     venv = libexec/"venv"
     system python, "-m", "venv", venv
     pip = venv/"bin/pip"
