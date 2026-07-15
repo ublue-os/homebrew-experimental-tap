@@ -26,12 +26,12 @@ cask "kiro-cli-linux" do
   postflight do
     # Create `q` symlink for backward compatibility with Amazon Q CLI
     q_link = "#{HOMEBREW_PREFIX}/bin/q"
-    FileUtils.rm(q_link)
+    FileUtils.rm_f q_link
     FileUtils.ln_s "#{HOMEBREW_PREFIX}/bin/kiro-cli", q_link
   end
 
   uninstall_postflight do
-    FileUtils.rm("#{HOMEBREW_PREFIX}/bin/q")
+    FileUtils.rm_f "#{HOMEBREW_PREFIX}/bin/q"
   end
 
   zap trash: [
