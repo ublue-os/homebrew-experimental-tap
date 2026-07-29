@@ -1,9 +1,9 @@
 cask "opencode-desktop-linux" do
   arch arm: "aarch64", intel: "x86_64"
 
-  version "1.15.11"
-  sha256 on_arch_conditional intel: "a2805908a6f71a574a4a253301e19395443c8c9318d3a7dcbb67257e7e3f07f0",
-                             arm:   "52913ae639e83d2c6abf5a9ac78dc503189e4c690ea3b84d262744994f53b510"
+  version "1.18.9"
+  sha256 on_arch_conditional intel: "19400e7ca2f101bf69056a5602241c406443fd3f32bfaee50170b0506f5f99d2",
+                             arm:   "6edcf2beb189ca230d9a03912eec91bdc9cf91b11e166e491f03f20c2a476724"
 
   url "https://github.com/anomalyco/opencode/releases/download/v#{version}/opencode-desktop-linux-#{arch}.rpm",
       verified: "github.com/anomalyco/opencode/"
@@ -19,20 +19,20 @@ cask "opencode-desktop-linux" do
   end
 
   depends_on formula: "gtk+3"
-  depends_on formula: "webkitgtk"
   depends_on formula: "rpm2cpio"
   depends_on formula: "cpio"
 
-  binary "usr/bin/OpenCode", target: "opencode-desktop"
-  binary "usr/bin/opencode-cli", target: "opencode-cli"
-  artifact "usr/share/icons/hicolor/32x32/apps/OpenCode.png",
-           target: "#{Dir.home}/.local/share/icons/hicolor/32x32/apps/OpenCode.png"
-  artifact "usr/share/icons/hicolor/128x128/apps/OpenCode.png",
-           target: "#{Dir.home}/.local/share/icons/hicolor/128x128/apps/OpenCode.png"
-  artifact "usr/share/icons/hicolor/256x256@2/apps/OpenCode.png",
-           target: "#{Dir.home}/.local/share/icons/hicolor/256x256@2/apps/OpenCode.png"
-  artifact "usr/share/applications/OpenCode.desktop",
-           target: "#{Dir.home}/.local/share/applications/OpenCode.desktop"
+  binary "opt/OpenCode/ai.opencode.desktop", target: "opencode-desktop"
+  artifact "usr/share/applications/opencode-desktop.desktop",
+           target: "#{Dir.home}/.local/share/applications/opencode-desktop.desktop"
+  artifact "usr/share/applications/ai.opencode.desktop.desktop",
+           target: "#{Dir.home}/.local/share/applications/ai.opencode.desktop.desktop"
+  artifact "usr/share/icons/hicolor/32x32/apps/ai.opencode.desktop.png",
+           target: "#{Dir.home}/.local/share/icons/hicolor/32x32/apps/ai.opencode.desktop.png"
+  artifact "usr/share/icons/hicolor/64x64/apps/ai.opencode.desktop.png",
+           target: "#{Dir.home}/.local/share/icons/hicolor/64x64/apps/ai.opencode.desktop.png"
+  artifact "usr/share/icons/hicolor/128x128/apps/ai.opencode.desktop.png",
+           target: "#{Dir.home}/.local/share/icons/hicolor/128x128/apps/ai.opencode.desktop.png"
 
   preflight do
     rpm2cpio = Formula["rpm2cpio"].bin/"rpm2cpio"
@@ -40,10 +40,13 @@ cask "opencode-desktop-linux" do
     system "sh", "-c", "'#{rpm2cpio}' '#{staged_path}/opencode-desktop-linux-#{arch}.rpm' | '#{cpio}' -idm --quiet",
            chdir: staged_path
 
-    desktop_file = "#{staged_path}/usr/share/applications/OpenCode.desktop"
-    content = File.read(desktop_file)
-    content.gsub!(/^Exec=.*/, "Exec=#{HOMEBREW_PREFIX}/bin/opencode-desktop %U")
-    File.write(desktop_file, content)
+    # Update desktop files to use Homebrew binary path
+    desktop_files = Dir["#{staged_path}/usr/share/applications/*.desktop"]
+    desktop_files.each do |desktop_file|
+      content = File.read(desktop_file)
+      content.gsub!(/^Exec=.*/, "Exec=#{HOMEBREW_PREFIX}/bin/opencode-desktop %U")
+      File.write(desktop_file, content)
+    end
   end
 
   zap trash: [
