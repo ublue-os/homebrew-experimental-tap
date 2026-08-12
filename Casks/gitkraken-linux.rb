@@ -1,6 +1,6 @@
 cask "gitkraken-linux" do
-  version "12.3.1"
-  sha256 "377f3b94ff1df9225906bc8134d505b14c1e6be82dea07463e14a62439b3319d"
+  version "12.4.0"
+  sha256 "7f7e56b5bf345c1da3bcc3ff4f50bf51bf8292399f471e5c5bc2213bfafefb4d"
 
   url "https://api.gitkraken.dev/releases/production/linux/x64/#{version}/gitkraken-amd64.tar.gz",
       verified: "api.gitkraken.dev/releases/production/"
