@@ -85,20 +85,63 @@ jobs:
       # scoped to the files this PR actually touches instead, matching tests.yml.
       - run: brew test-bot --only-tap-syntax --stable
 
-      - name: Style changed tap files
+      - name: Detect changed tap files
+        id: changed
         run: |
           git fetch --quiet origin main
           base="$(git merge-base origin/main HEAD)"
           changed_files="$(git diff --name-only --diff-filter=ACMR "$base...HEAD" -- Formula Casks)"
-          if [ -n "$changed_files" ]; then
-            echo "Styling: $changed_files"
+
+          # Fully qualify formula names so a same-named core formula cannot win.
+          tap="${GITHUB_REPOSITORY/homebrew-/}"
+          formulae="$(echo "$changed_files" | sed -n "s|^Formula/\(.*\)\.rb$|$tap/\1|p" | tr '\n' ' ')"
+
+          echo "Changed files: ${changed_files:-none}"
+          echo "Changed formulae: ${formulae:-none}"
+
+          {
+            echo "files<<CHANGED_EOF"
+            echo "$changed_files"
+            echo "CHANGED_EOF"
+            echo "formulae=$formulae"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Style changed tap files
+        env:
+          CHANGED_FILES: ${{ steps.changed.outputs.files }}
+        run: |
+          if [ -n "$CHANGED_FILES" ]; then
             # shellcheck disable=SC2086
-            brew style $changed_files
+            brew style $CHANGED_FILES
           else
             echo "No Formula or Casks changes to style."
           fi
 
-      - run: brew test-bot --only-formulae
+      # test-bot derives its diff range from GITHUB_BASE_REF, which GitHub only sets
+      # for `pull_request` events. Under workflow_call/workflow_dispatch there is no
+      # PR context, so it falls through to the branch-job path where
+      # diff_start_sha1 == diff_end_sha1 == GITHUB_SHA (main), producing an empty
+      # range and "Invalid usage: Did not find any formulae or commits to test!".
+      # Passing formula names explicitly sets @testing_formulae and skips the diff
+      # entirely (Homebrew test_bot/formulae_detect.rb:67).
+      #
+      # Casks cannot be passed this way (formulae_detect.rb:74 raises on a
+      # non-formula argument) and --only-formulae does nothing for them regardless,
+      # so cask-only bumps skip this step.
+      - name: Test changed formulae
+        env:
+          CHANGED_FORMULAE: ${{ steps.changed.outputs.formulae }}
+        run: |
+          if [ -z "$CHANGED_FORMULAE" ]; then
+            echo "No formula changes in this PR; skipping --only-formulae."
+            exit 0
+          fi
+
+          for formula in $CHANGED_FORMULAE; do
+            echo "::group::brew test-bot --only-formulae $formula"
+            brew test-bot --only-formulae "$formula"
+            echo "::endgroup::"
+          done
 
       # Applying `pr-pull` triggers publish.yml, which pushes to main. Only do that
       # if the head is still the commit that was just tested.
