@@ -5,6 +5,10 @@ on:
   schedule:
     - cron: "0 3 * * *" # daily at 03:00 UTC
 
+concurrency:
+  group: homebrew-bump
+  cancel-in-progress: false
+
 jobs:
   bump:
     runs-on: ubuntu-24.04
@@ -43,6 +47,9 @@ jobs:
         with:
           username: lambdaclan
 
+      # `brew bump` exits non-zero if any single package fails while still opening
+      # PRs for the rest, so failure is tolerated here to let the reporting steps
+      # below run. The final step re-raises it so the run is not silently green.
       - name: Bump packages
         id: bump
         continue-on-error: true
@@ -95,3 +102,29 @@ jobs:
                             fi
                           done
                         fi
+
+      # Without this the job is green on every run, because `continue-on-error`
+      # above swallows the failure. That masked 13 packages failing to bump nightly
+      # and made the pipeline look healthy while promotion was dead.
+      - name: Report bump result
+        if: always()
+        run: |
+          {
+            echo "### Homebrew Bump"
+            echo
+            if [ "${{ steps.bump.outcome }}" = "failure" ]; then
+              echo ":x: \`brew bump\` reported errors. Packages that could not be bumped:"
+              echo
+              echo '```'
+              grep -E "^.*##\[error\]|Could not find 'sha256' stanza|brew audit.*failed" bump_output.log \
+                | sed 's/##\[error\]//' | sort -u || echo "(see full log)"
+              echo '```'
+            else
+              echo ":white_check_mark: \`brew bump\` completed with no errors."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "${{ steps.bump.outcome }}" = "failure" ]; then
+            echo "::error::brew bump reported errors; see the job summary."
+            exit 1
+          fi

@@ -6,6 +6,18 @@ on:
       pr_number:
         description: "Pull Request Number"
         required: true
+  # Called by automerge.yml so Bump CI's result is a real job result rather than a
+  # fire-and-forget dispatch whose failure nothing observes.
+  workflow_call:
+    inputs:
+      pr_number:
+        description: "Pull Request Number"
+        required: true
+        type: string
+
+concurrency:
+  group: bump-ci-${{ inputs.pr_number }}
+  cancel-in-progress: true
 
 jobs:
   test-and-label:

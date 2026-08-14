@@ -7,41 +7,60 @@ on:
       - completed
   workflow_dispatch:
 
+concurrency:
+  group: automerge
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pull-requests: read
+
 jobs:
-  dispatch-tests:
+  discover:
     runs-on: ubuntu-24.04
-    if: github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch'
+    # `brew bump` routinely fails on one package while opening perfectly good PRs
+    # for others, so a failed Homebrew Bump must not stop the good PRs from being
+    # promoted. Only a cancelled run is skipped.
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion != 'cancelled'
+    outputs:
+      prs: ${{ steps.find.outputs.prs }}
     steps:
-      - name: Dispatch CI for Bump PRs
+      - name: Find open bump PRs
+        id: find
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         with:
           script: |
             const { owner, repo } = context.repo;
 
-            // Find open PRs by bump users
-            // You can adjust the query as per your needs, e.g., filter by labels if added
-            const { data: pulls } = await github.rest.pulls.list({
+            const pulls = await github.paginate(github.rest.pulls.list, {
               owner,
               repo,
               state: 'open',
-              per_page: 50
+              per_page: 100,
             });
 
-            for (const pr of pulls) {
-              const isBumpBot = ['lambdaclan', 'app/github-actions'].includes(pr.user.login);
-              const isBumpBranch = pr.head.ref.startsWith('bump-');
+            const bumpUsers = ['lambdaclan', 'app/github-actions'];
+            const prs = pulls
+              .filter((pr) => !pr.draft)
+              .filter((pr) => bumpUsers.includes(pr.user.login) || pr.head.ref.startsWith('bump-'))
+              .map((pr) => pr.number.toString());
 
-              if ((isBumpBot || isBumpBranch) && !pr.draft) {
-                console.log(`Dispatching Bump CI for PR #${pr.number}`);
+            core.info(`Bump PRs to test: ${prs.length ? prs.join(', ') : '(none)'}`);
+            core.setOutput('prs', JSON.stringify(prs));
 
-                await github.rest.actions.createWorkflowDispatch({
-                  owner,
-                  repo,
-                  workflow_id: 'bump-ci.yml',
-                  ref: 'main',
-                  inputs: {
-                    pr_number: pr.number.toString()
-                  }
-                });
-              }
-            }
+  bump-ci:
+    needs: discover
+    # An empty matrix vector is a hard error, so skip the job when nothing is open.
+    if: needs.discover.outputs.prs != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        pr: ${{ fromJson(needs.discover.outputs.prs) }}
+    uses: ./.github/workflows/bump-ci.yml
+    with:
+      pr_number: ${{ matrix.pr }}
+    permissions:
+      contents: read
+      actions: read
+      checks: read
+      pull-requests: write
