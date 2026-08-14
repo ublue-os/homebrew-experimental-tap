@@ -54,7 +54,7 @@ jobs:
       # the PR itself came from github-actions[bot]. That mismatch is also why the
       # test-bot run on each bump PR sat pending until a maintainer approved it.
       - name: Configure git
-        uses: Homebrew/actions/git-user-config@13f73d7cbd2f8f180d85d8f7201698cf110bf84c # main
+        uses: Homebrew/actions/git-user-config@8f3d1ec8a696b3b9d9a6c3696b6c73033cab69e4 # main
         with:
           username: github-actions[bot]
 
