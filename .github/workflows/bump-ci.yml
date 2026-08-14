@@ -43,12 +43,19 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Store PR Ref
+      # Pin the SHA up front and test exactly that commit. Previously this stored
+      # PR_REF (with literal quotes baked into the value) and never read it back,
+      # so a push landing mid-run was tested at one SHA and promoted at another.
+      - name: Check out the PR head SHA
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          head_sha="$(gh pr view "${{ inputs.pr_number }}" \
+            --repo "${{ github.repository }}" --json headRefOid --jq .headRefOid)"
+          echo "Testing PR #${{ inputs.pr_number }} at $head_sha"
           gh pr checkout "${{ inputs.pr_number }}"
-          echo "PR_REF=\"$(git rev-parse HEAD)\"" >> "$GITHUB_ENV"
+          git checkout --quiet --detach "$head_sha"
+          echo "PR_HEAD_SHA=$head_sha" >> "$GITHUB_ENV"
 
       - name: Cache Homebrew Bundler RubyGems
         uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
@@ -81,9 +88,20 @@ jobs:
 
       - run: brew test-bot --only-formulae
 
+      # Applying `pr-pull` triggers publish.yml, which pushes to main. Only do that
+      # if the head is still the commit that was just tested.
       - name: Label PR on Success
         if: success()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          current_sha="$(gh pr view "${{ inputs.pr_number }}" \
+            --repo "${{ github.repository }}" --json headRefOid --jq .headRefOid)"
+
+          if [ "$current_sha" != "$PR_HEAD_SHA" ]; then
+            echo "::error::PR #${{ inputs.pr_number }} head moved from $PR_HEAD_SHA to $current_sha during testing; refusing to label."
+            exit 1
+          fi
+
           gh pr edit "${{ inputs.pr_number }}" --add-label "pr-pull"
+          echo "Labelled PR #${{ inputs.pr_number }} pr-pull at $PR_HEAD_SHA"

@@ -26,11 +26,14 @@ jobs:
       - name: Set up git
         uses: Homebrew/actions/git-user-config@13f73d7cbd2f8f180d85d8f7201698cf110bf84c # main
 
+      # --head-sha makes pr-pull refuse to promote anything other than the commit
+      # that carried the label, closing the window between labelling and pulling.
       - name: Pull bottles
         env:
           HOMEBREW_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PULL_REQUEST: ${{ github.event.pull_request.number }}
-        run: brew pr-pull --debug --tap="$GITHUB_REPOSITORY" "$PULL_REQUEST"
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: brew pr-pull --debug --tap="$GITHUB_REPOSITORY" --head-sha="$HEAD_SHA" "$PULL_REQUEST"
 
       - name: Push commits
         uses: Homebrew/actions/git-try-push@13f73d7cbd2f8f180d85d8f7201698cf110bf84c # main
