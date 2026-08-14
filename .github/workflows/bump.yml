@@ -33,6 +33,12 @@ jobs:
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
           brew tap --force "${{ github.repository }}"
 
+          # `brew audit` resolves build dependencies against the core tap. Without it
+          # bluefin-cli fails every run with "Can't find dependency 'go'", because
+          # this job hand-rolls the Homebrew install rather than using
+          # Homebrew/actions/setup-homebrew (which taps core for the other workflows).
+          brew tap --force homebrew/core
+
           {
             echo "HOMEBREW_PREFIX=$HOMEBREW_PREFIX"
             echo "HOMEBREW_CELLAR=$HOMEBREW_CELLAR"
