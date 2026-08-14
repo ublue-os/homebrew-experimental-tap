@@ -10,6 +10,10 @@ on:
 jobs:
   test-and-label:
     env:
+      # test-bot writes tap trust under its temporary HOME. If XDG_CONFIG_HOME is set,
+      # nested `brew` commands ignore that trust store and `brew doctor` reports this
+      # tap as untrusted.
+      XDG_CONFIG_HOME: ""
       HOMEBREW_NO_REQUIRE_TAP_TRUST: "1"
     strategy:
       matrix:
@@ -43,7 +47,26 @@ jobs:
 
       - run: brew test-bot --only-cleanup-before
       - run: brew test-bot --only-setup
-      - run: brew test-bot --only-tap-syntax
+
+      # `--stable` restricts TapSyntax to `brew readall`. Without it, test-bot also
+      # runs `brew style` and `brew audit` across the entire tap, so any pre-existing
+      # offence in an unrelated cask fails every bump and severs promotion. Style is
+      # scoped to the files this PR actually touches instead, matching tests.yml.
+      - run: brew test-bot --only-tap-syntax --stable
+
+      - name: Style changed tap files
+        run: |
+          git fetch --quiet origin main
+          base="$(git merge-base origin/main HEAD)"
+          changed_files="$(git diff --name-only --diff-filter=ACMR "$base...HEAD" -- Formula Casks)"
+          if [ -n "$changed_files" ]; then
+            echo "Styling: $changed_files"
+            # shellcheck disable=SC2086
+            brew style $changed_files
+          else
+            echo "No Formula or Casks changes to style."
+          fi
+
       - run: brew test-bot --only-formulae
 
       - name: Label PR on Success
