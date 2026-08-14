@@ -1,6 +1,5 @@
 cask "webstorm-linux" do
-  arch intel: "",
-       arm:   "-aarch64"
+  arch arm: "-aarch64"
   os linux: "linux"
 
   version "2026.1.2,261.24374.125"

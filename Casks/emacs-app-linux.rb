@@ -1,5 +1,10 @@
 cask "emacs-app-linux" do
   arch arm: "arm64", intel: "amd64"
+  # Computed at cask-body scope: `on_arch_conditional` lives on Cask::DSL, not on
+  # the Cask::DSL::Base subclass the flight blocks below are instance_eval'd
+  # against, so calling it inside one would raise NoMethodError at install time.
+  # The blocks close over this local, which instance_eval does not disturb.
+  target_triplet = on_arch_conditional arm: "aarch64-unknown-linux-gnu", intel: "x86_64-pc-linux-gnu"
 
   version "30.2-18"
   sha256 arm64_linux:  "d2471179e3a7691148a585c04c573a9dc95ee26b448624f4a8131d73c2234698",
@@ -43,10 +48,8 @@ cask "emacs-app-linux" do
            target: "#{HOMEBREW_PREFIX}/opt/emacs-app-linux/libexec"
 
   preflight do
-    arch_str = Hardware::CPU.arm? ? "arm64" : "amd64"
-
     emacs_version = version.split("-").first
-    staged_prefix = "#{staged_path}/emacs-pgtk-#{emacs_version}-fedora-latest-#{arch_str}"
+    staged_prefix = "#{staged_path}/emacs-pgtk-#{emacs_version}-fedora-latest-#{arch}"
 
     # Make run-emacs.sh executable
     FileUtils.chmod "+x", "#{staged_prefix}/run-emacs.sh"
@@ -54,7 +57,6 @@ cask "emacs-app-linux" do
     # Create symlink to pdmp file in bin directory - Emacs automatically finds it there
     # Emacs looks for {binary-name}.pdmp next to the binary (e.g., emacs-30.2.pdmp)
     # Using a relative symlink saves ~12MB compared to copying
-    target_triplet = Hardware::CPU.arm? ? "aarch64-unknown-linux-gnu" : "x86_64-pc-linux-gnu"
     pdmp_source = Dir.glob("#{staged_prefix}/libexec/emacs/#{emacs_version}/#{target_triplet}/*.pdmp").first
     if pdmp_source
       relative_path = "../libexec/emacs/#{emacs_version}/#{target_triplet}/#{File.basename(pdmp_source)}"

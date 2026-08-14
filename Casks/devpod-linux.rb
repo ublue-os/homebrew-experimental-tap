@@ -50,12 +50,12 @@ cask "devpod-linux" do
 
   uninstall_postflight do
     xdg_data = ENV.fetch("XDG_DATA_HOME", "#{Dir.home}/.local/share")
-    FileUtils.rm_f "#{xdg_data}/applications/devpod.desktop"
-    FileUtils.rm_f "#{xdg_data}/icons/hicolor/512x512/apps/devpod.png"
+    FileUtils.rm("#{xdg_data}/applications/devpod.desktop", force: true)
+    FileUtils.rm("#{xdg_data}/icons/hicolor/512x512/apps/devpod.png", force: true)
   end
 
   zap trash: [
-    "~/.devpod",
     "~/.config/devpod",
+    "~/.devpod",
   ]
 end
