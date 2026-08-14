@@ -43,9 +43,15 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      # Pin the SHA up front and test exactly that commit. Previously this stored
-      # PR_REF (with literal quotes baked into the value) and never read it back,
-      # so a push landing mid-run was tested at one SHA and promoted at another.
+      # Pin the SHA up front and assert the checkout landed on it. Previously this
+      # stored PR_REF (with literal quotes baked into the value) and never read it
+      # back, so a push landing mid-run was tested at one SHA and promoted at another.
+      #
+      # Do not detach here. `brew test-bot --only-formulae` derives its test range
+      # from the current branch and its upstream, so on a detached HEAD it aborts
+      # with "Did not find any formulae or commits to test!". `gh pr checkout`
+      # leaves a tracking branch, which is what test-bot needs; comparing its
+      # resulting SHA to headRefOid gives the same guarantee without detaching.
       - name: Check out the PR head SHA
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -54,7 +60,13 @@ jobs:
             --repo "${{ github.repository }}" --json headRefOid --jq .headRefOid)"
           echo "Testing PR #${{ inputs.pr_number }} at $head_sha"
           gh pr checkout "${{ inputs.pr_number }}"
-          git checkout --quiet --detach "$head_sha"
+
+          checked_out="$(git rev-parse HEAD)"
+          if [ "$checked_out" != "$head_sha" ]; then
+            echo "::error::Checked out $checked_out but PR #${{ inputs.pr_number }} head is $head_sha; aborting."
+            exit 1
+          fi
+
           echo "PR_HEAD_SHA=$head_sha" >> "$GITHUB_ENV"
 
       - name: Cache Homebrew Bundler RubyGems
