@@ -48,10 +48,15 @@ jobs:
             echo "INFOPATH=$INFOPATH"
           } >> "$GITHUB_ENV"
 
+      # Attribute bump commits to the bot that actually opens the PR. This was
+      # hardcoded to `lambdaclan`, a real GitHub user who is not a collaborator on
+      # this repo, so every automated commit was authored under their identity while
+      # the PR itself came from github-actions[bot]. That mismatch is also why the
+      # test-bot run on each bump PR sat pending until a maintainer approved it.
       - name: Configure git
         uses: Homebrew/actions/git-user-config@13f73d7cbd2f8f180d85d8f7201698cf110bf84c # main
         with:
-          username: lambdaclan
+          username: github-actions[bot]
 
       # `brew bump` exits non-zero if any single package fails while still opening
       # PRs for the rest, so failure is tolerated here to let the reporting steps
