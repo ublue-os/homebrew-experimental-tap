@@ -143,8 +143,9 @@ jobs:
             echo "::endgroup::"
           done
 
-      # Applying `pr-pull` triggers publish.yml, which pushes to main. Only do that
-      # if the head is still the commit that was just tested.
+      # The `promote` job below is what actually runs pr-pull; this label is kept as
+      # a visible marker of what passed. Guard it anyway, since a human seeing the
+      # label may hand-trigger publish.yml, which pushes to main.
       - name: Label PR on Success
         if: success()
         env:
@@ -160,3 +161,20 @@ jobs:
 
           gh pr edit "${{ inputs.pr_number }}" --add-label "pr-pull"
           echo "Labelled PR #${{ inputs.pr_number }} pr-pull at $PR_HEAD_SHA"
+
+  # Call publish.yml rather than depending on the `labeled` event it also listens
+  # for. Bump CI applies that label with GITHUB_TOKEN, and GitHub does not start
+  # new workflow runs from GITHUB_TOKEN-triggered events, so the event path never
+  # fires for the automated flow. Verified on #516: the label landed at 18:06:16
+  # and publish.yml did not run.
+  promote:
+    needs: test-and-label
+    uses: ./.github/workflows/publish.yml
+    with:
+      pr_number: ${{ inputs.pr_number }}
+    permissions:
+      actions: read
+      checks: read
+      contents: write
+      issues: read
+      pull-requests: write

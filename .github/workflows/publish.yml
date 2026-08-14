@@ -1,13 +1,24 @@
 name: brew pr-pull
 
 on:
+  # Kept so a human can still promote by hand-applying the `pr-pull` label.
   pull_request_target:
     types:
       - labeled
+  # Called directly by bump-ci.yml. The automated path cannot rely on the label
+  # event: Bump CI applies the label with GITHUB_TOKEN, and GitHub does not start
+  # new workflow runs from events triggered by GITHUB_TOKEN, so the `labeled`
+  # event never reaches this workflow. Calling it removes that dependency.
+  workflow_call:
+    inputs:
+      pr_number:
+        description: "Pull Request Number"
+        required: true
+        type: string
 
 jobs:
   pr-pull:
-    if: contains(github.event.pull_request.labels.*.name, 'pr-pull')
+    if: github.event_name != 'pull_request_target' || contains(github.event.pull_request.labels.*.name, 'pr-pull')
     runs-on: ubuntu-24.04
     env:
       HOMEBREW_NO_REQUIRE_TAP_TRUST: "1"
@@ -26,13 +37,34 @@ jobs:
       - name: Set up git
         uses: Homebrew/actions/git-user-config@13f73d7cbd2f8f180d85d8f7201698cf110bf84c # main
 
+      # The two triggers carry different payloads, so resolve the PR once here and
+      # let every step below read the same values.
+      - name: Resolve pull request
+        id: pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ inputs.pr_number || github.event.pull_request.number }}
+        run: |
+          data="$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" \
+            --json number,headRefName,headRefOid,isCrossRepository)"
+
+          {
+            echo "number=$(echo "$data" | jq -r .number)"
+            echo "head_sha=$(echo "$data" | jq -r .headRefOid)"
+            echo "head_ref=$(echo "$data" | jq -r .headRefName)"
+            echo "fork=$(echo "$data" | jq -r .isCrossRepository)"
+          } >> "$GITHUB_OUTPUT"
+
+          echo "Promoting PR #$PR_NUMBER"
+          echo "$data"
+
       # --head-sha makes pr-pull refuse to promote anything other than the commit
-      # that carried the label, closing the window between labelling and pulling.
+      # that was resolved above, closing the window between testing and pulling.
       - name: Pull bottles
         env:
           HOMEBREW_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PULL_REQUEST: ${{ github.event.pull_request.number }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PULL_REQUEST: ${{ steps.pr.outputs.number }}
+          HEAD_SHA: ${{ steps.pr.outputs.head_sha }}
         run: brew pr-pull --debug --tap="$GITHUB_REPOSITORY" --head-sha="$HEAD_SHA" "$PULL_REQUEST"
 
       - name: Push commits
@@ -41,7 +73,7 @@ jobs:
           branch: main
 
       - name: Delete branch
-        if: github.event.pull_request.head.repo.fork == false
+        if: steps.pr.outputs.fork == 'false'
         env:
-          BRANCH: ${{ github.event.pull_request.head.ref }}
+          BRANCH: ${{ steps.pr.outputs.head_ref }}
         run: git push --delete origin "$BRANCH"

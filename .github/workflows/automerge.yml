@@ -59,8 +59,12 @@ jobs:
     uses: ./.github/workflows/bump-ci.yml
     with:
       pr_number: ${{ matrix.pr }}
+    # contents: write is required because bump-ci.yml now calls publish.yml, which
+    # pushes the promoted commit to main. A called workflow cannot exceed the
+    # permissions granted here.
     permissions:
-      contents: read
+      contents: write
       actions: read
       checks: read
+      issues: read
       pull-requests: write
