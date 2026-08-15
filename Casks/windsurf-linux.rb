@@ -27,7 +27,7 @@ cask "windsurf-linux" do
     xdg_data = ENV.fetch("XDG_DATA_HOME", "#{Dir.home}/.local/share")
     app_dir = "#{staged_path}/Devin-linux-x64-#{version.csv.first}"
 
-    icon_source = Dir.glob("#{app_dir}/**/*.png").sort_by { |f| -File.size(f) }.first
+    icon_source = Dir.glob("#{app_dir}/**/*.png").min_by { |f| -File.size(f) }
     icon_target = "#{xdg_data}/icons/hicolor/512x512/apps/windsurf.png"
     FileUtils.cp(icon_source, icon_target) if icon_source && File.exist?(icon_source)
 
@@ -55,8 +55,8 @@ cask "windsurf-linux" do
 
   uninstall_postflight do
     xdg_data = ENV.fetch("XDG_DATA_HOME", "#{Dir.home}/.local/share")
-    FileUtils.rm_f "#{xdg_data}/applications/windsurf.desktop"
-    FileUtils.rm_f "#{xdg_data}/icons/hicolor/512x512/apps/windsurf.png"
+    FileUtils.rm("#{xdg_data}/applications/windsurf.desktop", force: true)
+    FileUtils.rm("#{xdg_data}/icons/hicolor/512x512/apps/windsurf.png", force: true)
   end
 
   zap trash: [
