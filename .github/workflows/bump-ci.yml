@@ -21,6 +21,10 @@ concurrency:
 
 jobs:
   test-and-label:
+    outputs:
+      # Empty when the PR touches no Formula/, i.e. a cask-only bump.
+      formulae: ${{ steps.changed.outputs.formulae }}
+      head_sha: ${{ steps.checkout.outputs.head_sha }}
     env:
       # test-bot writes tap trust under its temporary HOME. If XDG_CONFIG_HOME is set,
       # nested `brew` commands ignore that trust store and `brew doctor` reports this
@@ -53,6 +57,7 @@ jobs:
       # leaves a tracking branch, which is what test-bot needs; comparing its
       # resulting SHA to headRefOid gives the same guarantee without detaching.
       - name: Check out the PR head SHA
+        id: checkout
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -68,6 +73,7 @@ jobs:
           fi
 
           echo "PR_HEAD_SHA=$head_sha" >> "$GITHUB_ENV"
+          echo "head_sha=$head_sha" >> "$GITHUB_OUTPUT"
 
       - name: Cache Homebrew Bundler RubyGems
         uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
@@ -162,6 +168,9 @@ jobs:
           gh pr edit "${{ inputs.pr_number }}" --add-label "pr-pull"
           echo "Labelled PR #${{ inputs.pr_number }} pr-pull at $PR_HEAD_SHA"
 
+  # Formula bumps go through `brew pr-pull`, which is what fetches the bottles
+  # tests.yml built and commits them alongside the version bump.
+  #
   # Call publish.yml rather than depending on the `labeled` event it also listens
   # for. Bump CI applies that label with GITHUB_TOKEN, and GitHub does not start
   # new workflow runs from GITHUB_TOKEN-triggered events, so the event path never
@@ -169,6 +178,7 @@ jobs:
   # and publish.yml did not run.
   promote:
     needs: test-and-label
+    if: needs.test-and-label.outputs.formulae != ''
     uses: ./.github/workflows/publish.yml
     with:
       pr_number: ${{ inputs.pr_number }}
@@ -178,3 +188,32 @@ jobs:
       contents: write
       issues: read
       pull-requests: write
+
+  # Cask bumps have no bottles, so pr-pull buys nothing and costs the PR linkage:
+  # it cherry-picks and closes the PR, leaving it CLOSED rather than MERGED and
+  # dropping the "(#NNN)" suffix every hand-merged cask bump in this tap carries.
+  # Squash-merge them instead, matching the repository's existing history.
+  merge-cask:
+    needs: test-and-label
+    if: needs.test-and-label.outputs.formulae == ''
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Squash merge cask bump
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+          EXPECTED_SHA: ${{ needs.test-and-label.outputs.head_sha }}
+        run: |
+          current_sha="$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" \
+            --json headRefOid --jq .headRefOid)"
+
+          if [ "$current_sha" != "$EXPECTED_SHA" ]; then
+            echo "::error::PR #$PR_NUMBER head moved from $EXPECTED_SHA to $current_sha after testing; refusing to merge."
+            exit 1
+          fi
+
+          gh pr merge "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --squash --delete-branch
+          echo "Squash-merged cask bump PR #$PR_NUMBER at $EXPECTED_SHA"
