@@ -1,11 +1,10 @@
 cask "rustrover-linux" do
-  arch intel: "",
-       arm:   "-aarch64"
+  arch arm: "-aarch64"
   os linux: "linux"
 
   version "2026.1.2,261.24374.182"
-  sha256 on_arch_conditional intel: "20d233ee719aaffa0787e0877f3e239b9b7dfc044f70c7e99ce97df59de48372",
-                             arm:   "3e608360cf27ab24909ba72950943d3f2cd290a391e95dcbb979d8a44d22edf5"
+  sha256 arm64_linux:  "3e608360cf27ab24909ba72950943d3f2cd290a391e95dcbb979d8a44d22edf5",
+         x86_64_linux: "20d233ee719aaffa0787e0877f3e239b9b7dfc044f70c7e99ce97df59de48372"
 
   url "https://download.jetbrains.com/rustrover/RustRover-#{version.csv.first}#{arch}.tar.gz"
   name "RustRover"
@@ -27,6 +26,7 @@ cask "rustrover-linux" do
 
   auto_updates false
   conflicts_with cask: "jetbrains-toolbox-linux"
+  depends_on linux: :any
 
   binary "#{HOMEBREW_PREFIX}/Caskroom/rustrover-linux/#{version}/RustRover-#{version.csv.first}/bin/rustrover"
   artifact "jetbrains-rustrover.desktop",

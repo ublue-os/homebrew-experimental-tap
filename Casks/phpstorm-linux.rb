@@ -1,11 +1,10 @@
 cask "phpstorm-linux" do
-  arch intel: "",
-       arm:   "-aarch64"
+  arch arm: "-aarch64"
   os linux: "linux"
 
   version "2026.1.2,261.24374.185"
-  sha256 on_arch_conditional intel: "55b5ec7ca6a1a755f8030002d74560844f999314e1a2f9d81c7632be4393b457",
-                             arm:   "7f43b0baad0e8d5c27a781a3fdd8a23c59fd1751dfe209bf3301f391a6c81f6c"
+  sha256 arm64_linux:  "7f43b0baad0e8d5c27a781a3fdd8a23c59fd1751dfe209bf3301f391a6c81f6c",
+         x86_64_linux: "55b5ec7ca6a1a755f8030002d74560844f999314e1a2f9d81c7632be4393b457"
 
   url "https://download.jetbrains.com/webide/PhpStorm-#{version.csv.first}#{arch}.tar.gz"
   name "PhpStorm"
@@ -27,6 +26,7 @@ cask "phpstorm-linux" do
 
   auto_updates false
   conflicts_with cask: "jetbrains-toolbox-linux"
+  depends_on linux: :any
 
   binary "#{HOMEBREW_PREFIX}/Caskroom/phpstorm-linux/#{version}/PhpStorm-#{version.csv.second}/bin/phpstorm"
   artifact "jetbrains-phpstorm.desktop",

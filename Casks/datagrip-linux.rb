@@ -1,11 +1,10 @@
 cask "datagrip-linux" do
-  arch intel: "",
-       arm:   "-aarch64"
+  arch arm: "-aarch64"
   os linux: "linux"
 
   version "2026.1.3,261.24374.56"
-  sha256 on_arch_conditional intel: "5f1c2f5e269601f2b7d7c0636f328f2d50de30194eaf9045b83d9ba94f3ed76a",
-                             arm:   "1beb629c3ffea8ce47551e2ed84d1c357b5d56c6f080af3f3dd67789cea17f83"
+  sha256 arm64_linux:  "1beb629c3ffea8ce47551e2ed84d1c357b5d56c6f080af3f3dd67789cea17f83",
+         x86_64_linux: "5f1c2f5e269601f2b7d7c0636f328f2d50de30194eaf9045b83d9ba94f3ed76a"
 
   url "https://download.jetbrains.com/datagrip/datagrip-#{version.csv.first}#{arch}.tar.gz"
   name "DataGrip"
@@ -27,6 +26,7 @@ cask "datagrip-linux" do
 
   auto_updates false
   conflicts_with cask: "jetbrains-toolbox-linux"
+  depends_on linux: :any
 
   binary "#{HOMEBREW_PREFIX}/Caskroom/datagrip-linux/#{version}/DataGrip-#{version.csv.first}/bin/datagrip"
   artifact "jetbrains-datagrip.desktop",
