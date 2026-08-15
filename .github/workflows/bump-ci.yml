@@ -6,10 +6,30 @@ on:
       pr_number:
         description: "Pull Request Number"
         required: true
+  # Called by automerge.yml so Bump CI's result is a real job result rather than a
+  # fire-and-forget dispatch whose failure nothing observes.
+  workflow_call:
+    inputs:
+      pr_number:
+        description: "Pull Request Number"
+        required: true
+        type: string
+
+concurrency:
+  group: bump-ci-${{ inputs.pr_number }}
+  cancel-in-progress: true
 
 jobs:
   test-and-label:
+    outputs:
+      # Empty when the PR touches no Formula/, i.e. a cask-only bump.
+      formulae: ${{ steps.changed.outputs.formulae }}
+      head_sha: ${{ steps.checkout.outputs.head_sha }}
     env:
+      # test-bot writes tap trust under its temporary HOME. If XDG_CONFIG_HOME is set,
+      # nested `brew` commands ignore that trust store and `brew doctor` reports this
+      # tap as untrusted.
+      XDG_CONFIG_HOME: ""
       HOMEBREW_NO_REQUIRE_TAP_TRUST: "1"
     strategy:
       matrix:
@@ -23,19 +43,40 @@ jobs:
     steps:
       - name: Set up Homebrew
         id: set-up-homebrew
-        uses: Homebrew/actions/setup-homebrew@18fcb8e3e06b4247c676c506750dc95ea7226479 # main
+        uses: Homebrew/actions/setup-homebrew@8f3d1ec8a696b3b9d9a6c3696b6c73033cab69e4 # main
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Store PR Ref
+      # Pin the SHA up front and assert the checkout landed on it. Previously this
+      # stored PR_REF (with literal quotes baked into the value) and never read it
+      # back, so a push landing mid-run was tested at one SHA and promoted at another.
+      #
+      # Do not detach here. `brew test-bot --only-formulae` derives its test range
+      # from the current branch and its upstream, so on a detached HEAD it aborts
+      # with "Did not find any formulae or commits to test!". `gh pr checkout`
+      # leaves a tracking branch, which is what test-bot needs; comparing its
+      # resulting SHA to headRefOid gives the same guarantee without detaching.
+      - name: Check out the PR head SHA
+        id: checkout
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          head_sha="$(gh pr view "${{ inputs.pr_number }}" \
+            --repo "${{ github.repository }}" --json headRefOid --jq .headRefOid)"
+          echo "Testing PR #${{ inputs.pr_number }} at $head_sha"
           gh pr checkout "${{ inputs.pr_number }}"
-          echo "PR_REF=\"$(git rev-parse HEAD)\"" >> "$GITHUB_ENV"
+
+          checked_out="$(git rev-parse HEAD)"
+          if [ "$checked_out" != "$head_sha" ]; then
+            echo "::error::Checked out $checked_out but PR #${{ inputs.pr_number }} head is $head_sha; aborting."
+            exit 1
+          fi
+
+          echo "PR_HEAD_SHA=$head_sha" >> "$GITHUB_ENV"
+          echo "head_sha=$head_sha" >> "$GITHUB_OUTPUT"
 
       - name: Cache Homebrew Bundler RubyGems
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
           path: ${{ steps.set-up-homebrew.outputs.gems-path }}
           key: ${{ matrix.os }}-rubygems-${{ steps.set-up-homebrew.outputs.gems-hash }}
@@ -43,12 +84,136 @@ jobs:
 
       - run: brew test-bot --only-cleanup-before
       - run: brew test-bot --only-setup
-      - run: brew test-bot --only-tap-syntax
-      - run: brew test-bot --only-formulae
 
+      # `--stable` restricts TapSyntax to `brew readall`. Without it, test-bot also
+      # runs `brew style` and `brew audit` across the entire tap, so any pre-existing
+      # offence in an unrelated cask fails every bump and severs promotion. Style is
+      # scoped to the files this PR actually touches instead, matching tests.yml.
+      - run: brew test-bot --only-tap-syntax --stable
+
+      - name: Detect changed tap files
+        id: changed
+        run: |
+          git fetch --quiet origin main
+          base="$(git merge-base origin/main HEAD)"
+          changed_files="$(git diff --name-only --diff-filter=ACMR "$base...HEAD" -- Formula Casks)"
+
+          # Fully qualify formula names so a same-named core formula cannot win.
+          tap="${GITHUB_REPOSITORY/homebrew-/}"
+          formulae="$(echo "$changed_files" | sed -n "s|^Formula/\(.*\)\.rb$|$tap/\1|p" | tr '\n' ' ')"
+
+          echo "Changed files: ${changed_files:-none}"
+          echo "Changed formulae: ${formulae:-none}"
+
+          {
+            echo "files<<CHANGED_EOF"
+            echo "$changed_files"
+            echo "CHANGED_EOF"
+            echo "formulae=$formulae"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Style changed tap files
+        env:
+          CHANGED_FILES: ${{ steps.changed.outputs.files }}
+        run: |
+          if [ -n "$CHANGED_FILES" ]; then
+            # shellcheck disable=SC2086
+            brew style $CHANGED_FILES
+          else
+            echo "No Formula or Casks changes to style."
+          fi
+
+      # test-bot derives its diff range from GITHUB_BASE_REF, which GitHub only sets
+      # for `pull_request` events. Under workflow_call/workflow_dispatch there is no
+      # PR context, so it falls through to the branch-job path where
+      # diff_start_sha1 == diff_end_sha1 == GITHUB_SHA (main), producing an empty
+      # range and "Invalid usage: Did not find any formulae or commits to test!".
+      # Passing formula names explicitly sets @testing_formulae and skips the diff
+      # entirely (Homebrew test_bot/formulae_detect.rb:67).
+      #
+      # Casks cannot be passed this way (formulae_detect.rb:74 raises on a
+      # non-formula argument) and --only-formulae does nothing for them regardless,
+      # so cask-only bumps skip this step.
+      - name: Test changed formulae
+        env:
+          CHANGED_FORMULAE: ${{ steps.changed.outputs.formulae }}
+        run: |
+          if [ -z "$CHANGED_FORMULAE" ]; then
+            echo "No formula changes in this PR; skipping --only-formulae."
+            exit 0
+          fi
+
+          for formula in $CHANGED_FORMULAE; do
+            echo "::group::brew test-bot --only-formulae $formula"
+            brew test-bot --only-formulae "$formula"
+            echo "::endgroup::"
+          done
+
+      # The `promote` job below is what actually runs pr-pull; this label is kept as
+      # a visible marker of what passed. Guard it anyway, since a human seeing the
+      # label may hand-trigger publish.yml, which pushes to main.
       - name: Label PR on Success
         if: success()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          current_sha="$(gh pr view "${{ inputs.pr_number }}" \
+            --repo "${{ github.repository }}" --json headRefOid --jq .headRefOid)"
+
+          if [ "$current_sha" != "$PR_HEAD_SHA" ]; then
+            echo "::error::PR #${{ inputs.pr_number }} head moved from $PR_HEAD_SHA to $current_sha during testing; refusing to label."
+            exit 1
+          fi
+
           gh pr edit "${{ inputs.pr_number }}" --add-label "pr-pull"
+          echo "Labelled PR #${{ inputs.pr_number }} pr-pull at $PR_HEAD_SHA"
+
+  # Formula bumps go through `brew pr-pull`, which is what fetches the bottles
+  # tests.yml built and commits them alongside the version bump.
+  #
+  # Call publish.yml rather than depending on the `labeled` event it also listens
+  # for. Bump CI applies that label with GITHUB_TOKEN, and GitHub does not start
+  # new workflow runs from GITHUB_TOKEN-triggered events, so the event path never
+  # fires for the automated flow. Verified on #516: the label landed at 18:06:16
+  # and publish.yml did not run.
+  promote:
+    needs: test-and-label
+    if: needs.test-and-label.outputs.formulae != ''
+    uses: ./.github/workflows/publish.yml
+    with:
+      pr_number: ${{ inputs.pr_number }}
+    permissions:
+      actions: read
+      checks: read
+      contents: write
+      issues: read
+      pull-requests: write
+
+  # Cask bumps have no bottles, so pr-pull buys nothing and costs the PR linkage:
+  # it cherry-picks and closes the PR, leaving it CLOSED rather than MERGED and
+  # dropping the "(#NNN)" suffix every hand-merged cask bump in this tap carries.
+  # Squash-merge them instead, matching the repository's existing history.
+  merge-cask:
+    needs: test-and-label
+    if: needs.test-and-label.outputs.formulae == ''
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Squash merge cask bump
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+          EXPECTED_SHA: ${{ needs.test-and-label.outputs.head_sha }}
+        run: |
+          current_sha="$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" \
+            --json headRefOid --jq .headRefOid)"
+
+          if [ "$current_sha" != "$EXPECTED_SHA" ]; then
+            echo "::error::PR #$PR_NUMBER head moved from $EXPECTED_SHA to $current_sha after testing; refusing to merge."
+            exit 1
+          fi
+
+          gh pr merge "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --squash --delete-branch
+          echo "Squash-merged cask bump PR #$PR_NUMBER at $EXPECTED_SHA"

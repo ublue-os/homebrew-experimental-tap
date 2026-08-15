@@ -1,11 +1,10 @@
 cask "dataspell-linux" do
-  arch intel: "",
-       arm:   "-aarch64"
+  arch arm: "-aarch64"
   os linux: "linux"
 
   version "2026.1.2,261.25134.18"
-  sha256 on_arch_conditional intel: "0f978e36b3bee442f572eb24514e1c4582e071b1bb442be5b9c9e6c3db7608e3",
-                             arm:   "4929883c5d290cca25c5e5cbdb551a1cc6d976d61b0a1595c532993ac3e11fe2"
+  sha256 arm64_linux:  "4929883c5d290cca25c5e5cbdb551a1cc6d976d61b0a1595c532993ac3e11fe2",
+         x86_64_linux: "0f978e36b3bee442f572eb24514e1c4582e071b1bb442be5b9c9e6c3db7608e3"
 
   url "https://download.jetbrains.com/python/dataspell-#{version.csv.first}#{arch}.tar.gz"
   name "DataSpell"
@@ -27,6 +26,7 @@ cask "dataspell-linux" do
 
   auto_updates false
   conflicts_with cask: "jetbrains-toolbox-linux"
+  depends_on linux: :any
 
   binary "#{HOMEBREW_PREFIX}/Caskroom/dataspell-linux/#{version}/dataspell-#{version.csv.first}/bin/dataspell"
   artifact "jetbrains-dataspell.desktop",
