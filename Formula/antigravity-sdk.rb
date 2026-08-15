@@ -5,6 +5,14 @@ class AntigravitySdk < Formula
   version "0.1.0"
   license "Apache-2.0"
 
+  # This formula tracks a git branch rather than a released tarball, so there is
+  # no version for `brew bump` to move to. Without this it fails every nightly run
+  # with "the current URL requires specifying a `--revision=` argument".
+  # `no_autobump!` is not usable here: it raises outside official Homebrew taps.
+  livecheck do
+    skip "Tracks the main branch; no tagged releases to bump to"
+  end
+
   depends_on "python@3.12"
 
   def install
