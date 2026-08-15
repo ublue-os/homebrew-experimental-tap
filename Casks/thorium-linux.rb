@@ -15,11 +15,14 @@ cask "thorium-linux" do
       # Find the latest release that has assets
       releases_with_assets = json.select { |r| r["assets"]&.any? && !r["prerelease"] }
       next if releases_with_assets.empty?
+
       releases_with_assets.first["tag_name"]&.sub(/^M/, "")
     end
   end
 
   depends_on formula: "squashfs"
+
+  binary "squashfs-root/thorium-browser", target: "thorium-browser"
 
   preflight do
     appimage_path = "#{staged_path}/Thorium_Browser_#{version}_AVX2.AppImage"
@@ -27,8 +30,6 @@ cask "thorium-linux" do
     system appimage_path, "--appimage-extract", chdir: staged_path
     FileUtils.rm appimage_path
   end
-
-  binary "squashfs-root/thorium-browser", target: "thorium-browser"
 
   postflight do
     xdg_data = ENV.fetch("XDG_DATA_HOME", "#{Dir.home}/.local/share")
@@ -65,12 +66,12 @@ cask "thorium-linux" do
 
   uninstall_postflight do
     xdg_data = ENV.fetch("XDG_DATA_HOME", "#{Dir.home}/.local/share")
-    FileUtils.rm_f "#{xdg_data}/applications/thorium-browser.desktop"
-    FileUtils.rm_f "#{xdg_data}/icons/hicolor/256x256/apps/thorium-browser.png"
+    FileUtils.rm("#{xdg_data}/applications/thorium-browser.desktop", force: true)
+    FileUtils.rm("#{xdg_data}/icons/hicolor/256x256/apps/thorium-browser.png", force: true)
   end
 
   zap trash: [
-    "~/.config/thorium",
     "~/.cache/thorium",
+    "~/.config/thorium",
   ]
 end
