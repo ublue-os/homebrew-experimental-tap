@@ -1,14 +1,20 @@
 class RocmSmiLib < Formula
   desc "AMD ROCm System Management Interface library (provides librocm_smi64.so)"
   homepage "https://github.com/ROCm/rocm_smi_lib"
-  url "https://github.com/ROCm/rocm_smi_lib/archive/refs/tags/rocm-7.2.0.tar.gz"
-  sha256 "9105b70b2ccda45d28c72973bb85df394d457a46d7cb2efbab3416b04d03b9f9"
+  url "https://github.com/ROCm/rocm_smi_lib/archive/refs/tags/rocm-7.2.4.tar.gz"
+  sha256 "bf28d4ae385aad841474240510b6c52c44cc387bad30749b464b2b0cb8f59626"
   license "MIT"
 
   livecheck do
     url :stable
     regex(/^rocm-(\d+(?:\.\d+)+)$/i)
     strategy :github_tag
+  end
+
+  bottle do
+    root_url "https://github.com/ublue-os/homebrew-experimental-tap/releases/download/rocm-smi-lib-7.2.4"
+    sha256 cellar: :any, arm64_linux:  "88a5bac639b69a09172d59c4136ee0f17a7073f1cde722672fd66c990b1a5b5c"
+    sha256 cellar: :any, x86_64_linux: "1af2128b2722461814fae449f00825ccf91416f21f08632324f2cd366764575f"
   end
 
   depends_on "cmake" => :build
