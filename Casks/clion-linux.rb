@@ -1,11 +1,10 @@
 cask "clion-linux" do
-  arch intel: "",
-       arm:   "-aarch64"
+  arch arm: "-aarch64"
   os linux: "linux"
 
   version "2026.1.2,261.24374.148"
-  sha256 on_arch_conditional intel: "4372ce869c2953abeb3d613303eb366676d1c68f847a8741507518b375e292bb",
-                             arm:   "60cd74e68ccfefca0b0e6c0a2f4b78678c068c20e1eb1be17ff0b5a020fa422f"
+  sha256 arm64_linux:  "60cd74e68ccfefca0b0e6c0a2f4b78678c068c20e1eb1be17ff0b5a020fa422f",
+         x86_64_linux: "4372ce869c2953abeb3d613303eb366676d1c68f847a8741507518b375e292bb"
 
   url "https://download.jetbrains.com/cpp/CLion-#{version.csv.first}#{arch}.tar.gz"
   name "CLion"
@@ -27,6 +26,7 @@ cask "clion-linux" do
 
   auto_updates false
   conflicts_with cask: "jetbrains-toolbox-linux"
+  depends_on linux: :any
 
   binary "#{HOMEBREW_PREFIX}/Caskroom/clion-linux/#{version}/clion-#{version.csv.first}/bin/clion"
   artifact "jetbrains-clion.desktop",
