@@ -5,7 +5,7 @@ cask "positron-linux" do
   sha256 on_arch_conditional intel: "432e22d31e65250e0a1eacf0cf34d58e115fd6f9e70516b52fddabf6791b9800",
                              arm:   :no_check
 
-  url "https://cdn.posit.co/positron/releases/deb/#{arch == "arm64" ? "arm64" : "x86_64"}/Positron-#{version}-#{arch}.deb",
+  url "https://cdn.posit.co/positron/releases/deb/#{(arch == "arm64") ? "arm64" : "x86_64"}/Positron-#{version}-#{arch}.deb",
       verified: "cdn.posit.co/positron/"
   name "Positron"
   desc "Next-generation data science IDE for R and Python"
@@ -21,6 +21,8 @@ cask "positron-linux" do
 
   depends_on formula: "dpkg"
 
+  binary "usr/bin/positron", target: "positron"
+
   preflight do
     xdg_data = ENV.fetch("XDG_DATA_HOME", "#{Dir.home}/.local/share")
     FileUtils.mkdir_p "#{xdg_data}/applications"
@@ -29,10 +31,8 @@ cask "positron-linux" do
     # Extract the deb package
     deb_file = "#{staged_path}/Positron-#{version}-#{arch}.deb"
     system "dpkg", "-x", deb_file, staged_path
-    FileUtils.rm_f deb_file
+    FileUtils.rm(deb_file, force: true)
   end
-
-  binary "usr/bin/positron", target: "positron"
 
   postflight do
     xdg_data = ENV.fetch("XDG_DATA_HOME", "#{Dir.home}/.local/share")
@@ -67,8 +67,8 @@ cask "positron-linux" do
 
   uninstall_postflight do
     xdg_data = ENV.fetch("XDG_DATA_HOME", "#{Dir.home}/.local/share")
-    FileUtils.rm_f "#{xdg_data}/applications/positron.desktop"
-    FileUtils.rm_f "#{xdg_data}/icons/hicolor/256x256/apps/positron.png"
+    FileUtils.rm("#{xdg_data}/applications/positron.desktop", force: true)
+    FileUtils.rm("#{xdg_data}/icons/hicolor/256x256/apps/positron.png", force: true)
   end
 
   zap trash: [
