@@ -1,11 +1,10 @@
 cask "goland-linux" do
-  arch intel: "",
-       arm:   "-aarch64"
+  arch arm: "-aarch64"
   os linux: "linux"
 
   version "2026.1.2,261.24374.154"
-  sha256 on_arch_conditional intel: "d4590311a6a9c836d33dee2ca0e7720872e4a7f513deb67ab221b21b28e6189a",
-                             arm:   "13c5a9038b3f78f10302ce3b20f0b4bf5d02d552a5f54614ed5357ff98a0a66e"
+  sha256 arm64_linux:  "13c5a9038b3f78f10302ce3b20f0b4bf5d02d552a5f54614ed5357ff98a0a66e",
+         x86_64_linux: "d4590311a6a9c836d33dee2ca0e7720872e4a7f513deb67ab221b21b28e6189a"
 
   url "https://download.jetbrains.com/go/goland-#{version.csv.first}#{arch}.tar.gz"
   name "GoLand"
@@ -27,6 +26,7 @@ cask "goland-linux" do
 
   auto_updates false
   conflicts_with cask: "jetbrains-toolbox-linux"
+  depends_on linux: :any
 
   binary "#{HOMEBREW_PREFIX}/Caskroom/goland-linux/#{version}/GoLand-#{version.csv.first}/bin/goland"
   artifact "jetbrains-goland.desktop",

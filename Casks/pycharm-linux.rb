@@ -1,11 +1,10 @@
 cask "pycharm-linux" do
-  arch intel: "",
-       arm:   "-aarch64"
+  arch arm: "-aarch64"
   os linux: "linux"
 
   version "2026.1.2,261.24374.152"
-  sha256 on_arch_conditional intel: "91c775be16fb0859f9b18ebd456d88e131cadf337b0ce9f9d8ed187886561966",
-                             arm:   "e6b4f25267afade04be6764f6bb16ea1d16159cae3490fbb4f58cc168ecffee3"
+  sha256 arm64_linux:  "e6b4f25267afade04be6764f6bb16ea1d16159cae3490fbb4f58cc168ecffee3",
+         x86_64_linux: "91c775be16fb0859f9b18ebd456d88e131cadf337b0ce9f9d8ed187886561966"
 
   url "https://download.jetbrains.com/python/pycharm-#{version.csv.first}#{arch}.tar.gz"
   name "PyCharm"
@@ -27,6 +26,7 @@ cask "pycharm-linux" do
 
   auto_updates false
   conflicts_with cask: "jetbrains-toolbox-linux"
+  depends_on linux: :any
 
   binary "#{HOMEBREW_PREFIX}/Caskroom/pycharm-linux/#{version}/pycharm-#{version.csv.first}/bin/pycharm"
   artifact "jetbrains-pycharm.desktop",
