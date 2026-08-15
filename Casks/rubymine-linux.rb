@@ -1,11 +1,10 @@
 cask "rubymine-linux" do
-  arch intel: "",
-       arm:   "-aarch64"
+  arch arm: "-aarch64"
   os linux: "linux"
 
   version "2026.1.2,261.24374.145"
-  sha256 on_arch_conditional intel: "eabbed2b54ec66cbae56a7f26bd7a1edf1e4ecb272cb1838498ad4ff25e72b52",
-                             arm:   "12f2a9637cdb5074f4dc65484ff1c9c5590eb4982c086fa360d70a7e25f49932"
+  sha256 arm64_linux:  "12f2a9637cdb5074f4dc65484ff1c9c5590eb4982c086fa360d70a7e25f49932",
+         x86_64_linux: "eabbed2b54ec66cbae56a7f26bd7a1edf1e4ecb272cb1838498ad4ff25e72b52"
 
   url "https://download.jetbrains.com/ruby/RubyMine-#{version.csv.first}#{arch}.tar.gz"
   name "RubyMine"
@@ -27,6 +26,7 @@ cask "rubymine-linux" do
 
   auto_updates false
   conflicts_with cask: "jetbrains-toolbox-linux"
+  depends_on linux: :any
 
   binary "#{HOMEBREW_PREFIX}/Caskroom/rubymine-linux/#{version}/RubyMine-#{version.csv.first}/bin/rubymine"
   artifact "jetbrains-rubymine.desktop",
