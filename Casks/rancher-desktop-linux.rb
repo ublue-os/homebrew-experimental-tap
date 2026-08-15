@@ -7,7 +7,6 @@ cask "rancher-desktop-linux" do
   desc "Container management and Kubernetes on the desktop"
   homepage "https://rancherdesktop.io/"
 
-  auto_updates true
   depends_on formula: "squashfs"
 
   binary "squashfs-root/AppRun", target: "rancher-desktop"
