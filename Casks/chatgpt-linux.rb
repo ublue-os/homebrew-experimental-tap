@@ -4,9 +4,7 @@ cask "chatgpt-linux" do
   os linux: "linux"
 
   version "26.810.50856"
-  sha256 arm:          "295aa2ba58108d74a89387e533ba776ab85509bc011eb4fd9dc07ec217f2a976",
-         intel:        "6480278aab012086df56f759c1825bc3c1cd3ce7dc9cd6d9bbf012d2ae38d9e6",
-         arm64_linux:  "295aa2ba58108d74a89387e533ba776ab85509bc011eb4fd9dc07ec217f2a976",
+  sha256 arm64_linux:  "295aa2ba58108d74a89387e533ba776ab85509bc011eb4fd9dc07ec217f2a976",
          x86_64_linux: "6480278aab012086df56f759c1825bc3c1cd3ce7dc9cd6d9bbf012d2ae38d9e6"
 
   url "https://persistent.oaistatic.com/codex-app-prod/linux/rpm/#{arch}/chatgpt-#{version}-1.#{arch}.rpm"
@@ -20,6 +18,7 @@ cask "chatgpt-linux" do
   end
 
   auto_updates true
+  depends_on linux: :any
   depends_on formula: "cpio"
   depends_on formula: "rpm2cpio"
 
