@@ -5,7 +5,7 @@ cask "jetbrains-gateway-linux" do
   sha256 on_arch_conditional intel: "1e2ce880a1fa8285f535d708fc58f862c091cc359f16f40661268c33dc150c20",
                              arm:   :no_check
 
-  url "https://download.jetbrains.com/idea/gateway/JetBrainsGateway-#{version}#{arch == "aarch64" ? "-aarch64" : ""}.tar.gz",
+  url "https://download.jetbrains.com/idea/gateway/JetBrainsGateway-#{version}#{"-aarch64" if arch == "aarch64"}.tar.gz",
       verified: "download.jetbrains.com/idea/gateway/"
   name "JetBrains Gateway"
   desc "Connect to remote development environments with JetBrains IDEs"
@@ -13,7 +13,7 @@ cask "jetbrains-gateway-linux" do
 
   livecheck do
     url "https://data.services.jetbrains.com/products/releases?code=GW&latest=true&type=release"
-    regex(/\"version\":\s*\"([^\"]+)\"/i)
+    regex(/"version":\s*"([^"]+)"/i)
     strategy :json do |json|
       json.dig("GW", 0, "version")
     end
@@ -51,8 +51,8 @@ cask "jetbrains-gateway-linux" do
 
   uninstall_postflight do
     xdg_data = ENV.fetch("XDG_DATA_HOME", "#{Dir.home}/.local/share")
-    FileUtils.rm_f "#{xdg_data}/applications/jetbrains-gateway.desktop"
-    FileUtils.rm_f "#{xdg_data}/icons/hicolor/128x128/apps/jetbrains-gateway.png"
+    FileUtils.rm("#{xdg_data}/applications/jetbrains-gateway.desktop", force: true)
+    FileUtils.rm("#{xdg_data}/icons/hicolor/128x128/apps/jetbrains-gateway.png", force: true)
   end
 
   zap trash: [
