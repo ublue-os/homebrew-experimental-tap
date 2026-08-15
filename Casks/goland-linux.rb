@@ -26,6 +26,7 @@ cask "goland-linux" do
 
   auto_updates false
   conflicts_with cask: "jetbrains-toolbox-linux"
+  depends_on linux: :any
 
   binary "#{HOMEBREW_PREFIX}/Caskroom/goland-linux/#{version}/GoLand-#{version.csv.first}/bin/goland"
   artifact "jetbrains-goland.desktop",

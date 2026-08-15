@@ -26,6 +26,7 @@ cask "clion-linux" do
 
   auto_updates false
   conflicts_with cask: "jetbrains-toolbox-linux"
+  depends_on linux: :any
 
   binary "#{HOMEBREW_PREFIX}/Caskroom/clion-linux/#{version}/clion-#{version.csv.first}/bin/clion"
   artifact "jetbrains-clion.desktop",

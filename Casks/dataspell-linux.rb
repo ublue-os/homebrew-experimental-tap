@@ -26,6 +26,7 @@ cask "dataspell-linux" do
 
   auto_updates false
   conflicts_with cask: "jetbrains-toolbox-linux"
+  depends_on linux: :any
 
   binary "#{HOMEBREW_PREFIX}/Caskroom/dataspell-linux/#{version}/dataspell-#{version.csv.first}/bin/dataspell"
   artifact "jetbrains-dataspell.desktop",

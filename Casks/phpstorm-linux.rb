@@ -26,6 +26,7 @@ cask "phpstorm-linux" do
 
   auto_updates false
   conflicts_with cask: "jetbrains-toolbox-linux"
+  depends_on linux: :any
 
   binary "#{HOMEBREW_PREFIX}/Caskroom/phpstorm-linux/#{version}/PhpStorm-#{version.csv.second}/bin/phpstorm"
   artifact "jetbrains-phpstorm.desktop",

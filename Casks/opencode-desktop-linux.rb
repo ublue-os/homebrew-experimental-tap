@@ -18,6 +18,7 @@ cask "opencode-desktop-linux" do
     end
   end
 
+  depends_on linux: :any
   depends_on formula: "gtk+3"
   depends_on formula: "rpm2cpio"
   depends_on formula: "cpio"

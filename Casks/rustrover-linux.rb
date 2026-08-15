@@ -26,6 +26,7 @@ cask "rustrover-linux" do
 
   auto_updates false
   conflicts_with cask: "jetbrains-toolbox-linux"
+  depends_on linux: :any
 
   binary "#{HOMEBREW_PREFIX}/Caskroom/rustrover-linux/#{version}/RustRover-#{version.csv.first}/bin/rustrover"
   artifact "jetbrains-rustrover.desktop",

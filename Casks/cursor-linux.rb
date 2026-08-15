@@ -23,6 +23,8 @@ cask "cursor-linux" do
     end
   end
 
+  depends_on linux: :any
+
   binary "Cursor-#{version.csv.first}-#{file_arch}.AppImage", target: "cursor"
   bash_completion "#{staged_path}/squashfs-root/usr/share/cursor/resources/completions/bash/cursor"
   zsh_completion  "#{staged_path}/squashfs-root/usr/share/cursor/resources/completions/zsh/_cursor"

@@ -21,6 +21,7 @@ cask "emacs-app-linux" do
     regex(/^emacs-pgtk[._-]v?(\d+(?:\.\d+)+-\d+)$/i)
   end
 
+  depends_on linux: :any
   depends_on formula: "libgccjit"
   depends_on formula: "tree-sitter@0.25"
 
