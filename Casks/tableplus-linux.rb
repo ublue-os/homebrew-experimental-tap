@@ -15,6 +15,8 @@ cask "tableplus-linux" do
 
   depends_on formula: "dpkg"
 
+  binary "usr/bin/tableplus", target: "tableplus"
+
   preflight do
     xdg_data = ENV.fetch("XDG_DATA_HOME", "#{Dir.home}/.local/share")
     FileUtils.mkdir_p "#{xdg_data}/applications"
@@ -23,15 +25,13 @@ cask "tableplus-linux" do
     # Extract the deb package
     deb_file = "#{staged_path}/tableplus_#{version}_amd64.deb"
     system "dpkg", "-x", deb_file, staged_path
-    FileUtils.rm_f deb_file
+    FileUtils.rm(deb_file, force: true)
   end
-
-  binary "usr/bin/tableplus", target: "tableplus"
 
   postflight do
     xdg_data = ENV.fetch("XDG_DATA_HOME", "#{Dir.home}/.local/share")
 
-    icon_source = Dir.glob("#{staged_path}/usr/share/icons/**/*.png").sort_by { |f| -File.size(f) }.first
+    icon_source = Dir.glob("#{staged_path}/usr/share/icons/**/*.png").min_by { |f| -File.size(f) }
     icon_target = "#{xdg_data}/icons/hicolor/256x256/apps/tableplus.png"
     FileUtils.cp(icon_source, icon_target) if icon_source && File.exist?(icon_source)
 
@@ -61,8 +61,8 @@ cask "tableplus-linux" do
 
   uninstall_postflight do
     xdg_data = ENV.fetch("XDG_DATA_HOME", "#{Dir.home}/.local/share")
-    FileUtils.rm_f "#{xdg_data}/applications/tableplus.desktop"
-    FileUtils.rm_f "#{xdg_data}/icons/hicolor/256x256/apps/tableplus.png"
+    FileUtils.rm("#{xdg_data}/applications/tableplus.desktop", force: true)
+    FileUtils.rm("#{xdg_data}/icons/hicolor/256x256/apps/tableplus.png", force: true)
   end
 
   zap trash: [
