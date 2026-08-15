@@ -1,31 +1,52 @@
 cask "localwp-linux" do
-  version "9.2.0"
-  sha256 "f880e0a80c4fde8a11965177c81b193240836c5c258f32f15f6c68ca65e3c29e"
+  version "10.1.1,6939"
+  sha256 "e5c9c957fc128b4688a485497f7fc33cefa33ab86af81c0ee764c0d708998498"
 
-  url "https://cdn.localwp.com/releases/#{version}/linux/local-#{version}-linux-x64.tar.gz",
-      verified: "cdn.localwp.com/releases/"
+  url "https://cdn.localwp.com/releases-stable/#{version.csv.first}+#{version.csv.second}/local-#{version.csv.first}-linux.deb"
   name "LocalWP"
   desc "Local WordPress development environment"
   homepage "https://localwp.com/"
 
-  auto_updates true
+  # There is no version index: the GCS bucket denies listing, localwp.com/releases
+  # is JS-rendered and stale, and no electron-updater manifest is published. The
+  # /stable/latest/deb endpoint 302s to the current build, so read the version out
+  # of the redirect. Same approach homebrew-cask uses for the `local` cask.
+  livecheck do
+    url "https://cdn.localwp.com/stable/latest/deb"
+    regex(%r{/(\d+(?:\.\d+)+)\+(\d+)/}i)
+    strategy :header_match do |headers, regex|
+      match = headers["location"]&.match(regex)
+      next if match.blank?
 
-  binary "Local", target: "localwp"
+      "#{match[1]},#{match[2]}"
+    end
+  end
+
+  auto_updates true
+  depends_on linux: :any
+  # Upstream publishes an amd64 deb only; the control file declares Architecture: amd64.
+  depends_on arch: :x86_64
+  depends_on formula: "dpkg"
+
+  binary "opt/Local/local", target: "localwp"
 
   preflight do
     xdg_data = ENV.fetch("XDG_DATA_HOME", "#{Dir.home}/.local/share")
     FileUtils.mkdir_p "#{xdg_data}/applications"
     FileUtils.mkdir_p "#{xdg_data}/icons/hicolor/512x512/apps"
+
+    # Extract the deb package
+    deb_file = "#{staged_path}/local-#{version.csv.first}-linux.deb"
+    system "dpkg", "-x", deb_file, staged_path
+    FileUtils.rm(deb_file, force: true)
   end
 
   postflight do
     xdg_data = ENV.fetch("XDG_DATA_HOME", "#{Dir.home}/.local/share")
 
-    # Find icon in extracted archive
-    icon_source = Dir.glob("#{staged_path}/**/local.png").first ||
-                  Dir.glob("#{staged_path}/**/*.png").first
+    icon_source = "#{staged_path}/usr/share/icons/hicolor/512x512/apps/local.png"
     icon_target = "#{xdg_data}/icons/hicolor/512x512/apps/localwp.png"
-    FileUtils.cp(icon_source, icon_target) if icon_source && File.exist?(icon_source)
+    FileUtils.cp(icon_source, icon_target) if File.exist?(icon_source)
 
     File.write("#{xdg_data}/applications/localwp.desktop", <<~EOS)
       [Desktop Entry]
@@ -37,8 +58,8 @@ cask "localwp-linux" do
       Type=Application
       StartupNotify=true
       StartupWMClass=Local
-      Categories=Development;WebDevelopment;
-      MimeType=x-scheme-handler/local-site;
+      Categories=Development;
+      MimeType=x-scheme-handler/flywheel-local;
       Keywords=wordpress;local;development;web;
     EOS
   end
