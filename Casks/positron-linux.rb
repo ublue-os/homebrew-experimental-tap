@@ -1,9 +1,9 @@
 cask "positron-linux" do
   arch arm: "arm64", intel: "x64"
 
-  version "2026.07.1-5"
-  sha256 on_arch_conditional intel: "432e22d31e65250e0a1eacf0cf34d58e115fd6f9e70516b52fddabf6791b9800",
-                             arm:   :no_check
+  version "2026.08.1-2"
+  sha256 arm64_linux:  "78ccb9b8f25f6a0c99fd233367f6675c24001bf54347d5ad694423020976d7ca",
+         x86_64_linux: "e307d3710b054de4236b62591702419887d73bdb65e8253f279fc7663d3ced89"
 
   url "https://cdn.posit.co/positron/releases/deb/#{(arch == "arm64") ? "arm64" : "x86_64"}/Positron-#{version}-#{arch}.deb",
       verified: "cdn.posit.co/positron/"
@@ -19,6 +19,7 @@ cask "positron-linux" do
     end
   end
 
+  depends_on linux: :any
   depends_on formula: "dpkg"
 
   binary "usr/bin/positron", target: "positron"
