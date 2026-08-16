@@ -1,6 +1,6 @@
 cask "tableplus-linux" do
-  version "0.1.306"
-  sha256 "c58ed0766e6999c5a8169221d910bf56bef4ff59cee1a87bb90c671adc479a07"
+  version "0.1.308"
+  sha256 "b2a880fa2099aea1cf224876e097a3b5f06f20bb59b771cdd9b29fff549cef5e"
 
   url "https://deb.tableplus.com/debian/22/pool/main/t/tableplus/tableplus_#{version}_amd64.deb",
       verified: "deb.tableplus.com/"
@@ -13,7 +13,12 @@ cask "tableplus-linux" do
     regex(/tableplus_([0-9.]+)_amd64\.deb/i)
   end
 
+  depends_on linux: :any
+  depends_on arch: :x86_64
   depends_on formula: "dpkg"
+  # the preflight below extracts the deb itself; without :naked, brew's
+  # container sniffing trips over the zstd-compressed members of newer debs
+  container type: :naked
 
   binary "usr/bin/tableplus", target: "tableplus"
 
