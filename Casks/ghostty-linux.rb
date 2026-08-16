@@ -28,9 +28,9 @@ cask "ghostty-linux" do
     # Remove the original AppImage to save space
     FileUtils.rm appimage_path
 
-    FileUtils.mkdir_p "#{Dir.home}/.local/share/applications"
-    FileUtils.mkdir_p "#{Dir.home}/.local/share/icons"
-    FileUtils.mkdir_p "#{Dir.home}/.local/share/systemd/user"
+    xdg_data = ENV.fetch("XDG_DATA_HOME", "#{Dir.home}/.local/share")
+    FileUtils.mkdir_p "#{xdg_data}/applications"
+    FileUtils.mkdir_p "#{xdg_data}/systemd/user"
 
     # Create wrapper script to execute AppRun from the correct directory
     # (upstream switched from binary AppRun to shell script in v1.2.3 which
@@ -44,22 +44,34 @@ cask "ghostty-linux" do
   end
 
   postflight do
-    # Fix the desktop file - update both TryExec and Exec to point to Homebrew binary
-    desktop_content = File.read("#{staged_path}/squashfs-root/com.mitchellh.ghostty.desktop")
-    desktop_content.gsub!(/^TryExec=.*/, "TryExec=#{HOMEBREW_PREFIX}/bin/ghostty")
-    desktop_content.gsub!(/^Exec=.*/, "Exec=#{HOMEBREW_PREFIX}/bin/ghostty")
-    File.write("#{Dir.home}/.local/share/applications/ghostty.desktop", desktop_content)
+    xdg_data = ENV.fetch("XDG_DATA_HOME", "#{Dir.home}/.local/share")
 
-    FileUtils.cp("#{staged_path}/squashfs-root/com.mitchellh.ghostty.png",
-                 "#{Dir.home}/.local/share/icons/ghostty.png")
+    # keep the app-id filename (GNOME window matching) and the Exec arguments
+    desktop_content = File.read("#{staged_path}/squashfs-root/com.mitchellh.ghostty.desktop")
+    desktop_content.gsub!(/^TryExec=\S+/, "TryExec=#{HOMEBREW_PREFIX}/bin/ghostty")
+    desktop_content.gsub!(/^Exec=\S+/, "Exec=#{HOMEBREW_PREFIX}/bin/ghostty")
+    File.write("#{xdg_data}/applications/com.mitchellh.ghostty.desktop", desktop_content)
+
+    # install icons under the name the desktop file's Icon= key references
+    Dir["#{staged_path}/squashfs-root/share/icons/hicolor/*/apps/com.mitchellh.ghostty.png"].each do |icon|
+      size = File.basename(File.dirname(icon, 2))
+      target_dir = "#{xdg_data}/icons/hicolor/#{size}/apps"
+      FileUtils.mkdir_p target_dir
+      FileUtils.cp(icon, "#{target_dir}/com.mitchellh.ghostty.png")
+    end
+
     FileUtils.cp("#{staged_path}/squashfs-root/share/dbus-1/services/com.mitchellh.ghostty.service",
-                 "#{Dir.home}/.local/share/systemd/user/com.mitchellh.ghostty.service")
+                 "#{xdg_data}/systemd/user/com.mitchellh.ghostty.service")
   end
 
   uninstall_postflight do
-    FileUtils.rm("#{Dir.home}/.local/share/applications/ghostty.desktop", force: true)
-    FileUtils.rm("#{Dir.home}/.local/share/icons/ghostty.png", force: true)
-    FileUtils.rm("#{Dir.home}/.local/share/systemd/user/com.mitchellh.ghostty.service", force: true)
+    xdg_data = ENV.fetch("XDG_DATA_HOME", "#{Dir.home}/.local/share")
+    FileUtils.rm("#{xdg_data}/applications/com.mitchellh.ghostty.desktop", force: true)
+    FileUtils.rm(Dir["#{xdg_data}/icons/hicolor/*/apps/com.mitchellh.ghostty.png"], force: true)
+    FileUtils.rm("#{xdg_data}/systemd/user/com.mitchellh.ghostty.service", force: true)
+    # leftovers from cask revisions that installed under the wrong names
+    FileUtils.rm("#{xdg_data}/applications/ghostty.desktop", force: true)
+    FileUtils.rm("#{xdg_data}/icons/ghostty.png", force: true)
   end
 
   zap trash: "~/.config/ghostty"
