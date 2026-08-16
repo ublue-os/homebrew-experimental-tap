@@ -1,9 +1,9 @@
 cask "jetbrains-gateway-linux" do
   arch arm: "aarch64", intel: "x86_64"
 
-  version "2026.1.3"
-  sha256 on_arch_conditional intel: "1e2ce880a1fa8285f535d708fc58f862c091cc359f16f40661268c33dc150c20",
-                             arm:   :no_check
+  version "2026.2.1"
+  sha256 arm64_linux:  "4b145192467e729641b56073a6275ccdd4f117b640479d43a6d1f2f74baabcda",
+         x86_64_linux: "5a3d333acc54ab8d091dc3e635b069a4ddda3faf7dace84966df87cdc7b8fce3"
 
   url "https://download.jetbrains.com/idea/gateway/JetBrainsGateway-#{version}#{"-aarch64" if arch == "aarch64"}.tar.gz",
       verified: "download.jetbrains.com/idea/gateway/"
@@ -18,6 +18,8 @@ cask "jetbrains-gateway-linux" do
       json.dig("GW", 0, "version")
     end
   end
+
+  depends_on linux: :any
 
   binary "JetBrainsGateway-#{version}/bin/gateway.sh", target: "jetbrains-gateway"
 
