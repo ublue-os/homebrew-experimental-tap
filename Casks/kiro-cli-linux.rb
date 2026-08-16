@@ -2,9 +2,9 @@ cask "kiro-cli-linux" do
   arch arm:   "aarch64",
        intel: "x86_64"
 
-  version "2.12.2"
-  sha256 on_arch_conditional arm:   "b26e466ef6b308a29fe2abfe50c4745b5b805607a58d0df3ba63b4b7993efae8",
-                             intel: "224200ace4e059bb69dada23cf78d9dbdd904de40347dfba70ea7897d8e803ca"
+  version "2.18.1"
+  sha256 arm64_linux:  "dc6b3304fed9cc368d5138c8474a6d41ee4fe3d7a4132d210c62d50396dd630e",
+         x86_64_linux: "d8d9837ce549e97a966d8e8b1a03610d9b11592677eb22ed45b2df61de9a0dd6"
 
   url "https://prod.download.cli.kiro.dev/stable/#{version}/kirocli-#{arch}-linux.zip",
       verified: "prod.download.cli.kiro.dev/"
@@ -18,6 +18,8 @@ cask "kiro-cli-linux" do
       json["version"]
     end
   end
+
+  depends_on linux: :any
 
   binary "kirocli/bin/kiro-cli"
   binary "kirocli/bin/kiro-cli-chat"
