@@ -36,20 +36,20 @@ jobs:
             echo "Checking manual version request: ${TARGET_TAG}"
           else
             echo "Checking for latest GitHub release..."
-            TARGET_TAG=$(gh release view --repo hanthor/bluefin-cli --json tagName --jq .tagName)
+            TARGET_TAG=$(gh release view --repo tuna-os/bluefin-cli --json tagName --jq .tagName)
             TARGET_TAG="${TARGET_TAG#v}"
           fi
 
           echo "latest_version=${TARGET_TAG}" >> "$GITHUB_OUTPUT"
 
-          CURRENT_VERSION=$(grep -oP '^  url "https://github.com/hanthor/bluefin-cli/archive/refs/tags/v\K[^\"]+(?=\.tar\.gz")' Formula/bluefin-cli.rb)
+          CURRENT_VERSION=$(grep -oP '^  url "https://github.com/tuna-os/bluefin-cli/archive/refs/tags/v\K[^\"]+(?=\.tar\.gz")' Formula/bluefin-cli.rb)
           echo "current_version=${CURRENT_VERSION}" >> "$GITHUB_OUTPUT"
 
           if [ "$TARGET_TAG" != "$CURRENT_VERSION" ]; then
             echo "needs_update=true" >> "$GITHUB_OUTPUT"
             echo "Update needed: $CURRENT_VERSION -> $TARGET_TAG"
 
-            SOURCE_URL="https://github.com/hanthor/bluefin-cli/archive/refs/tags/v${TARGET_TAG}.tar.gz"
+            SOURCE_URL="https://github.com/tuna-os/bluefin-cli/archive/refs/tags/v${TARGET_TAG}.tar.gz"
             SOURCE_SHA=$(curl -fsSL "$SOURCE_URL" | sha256sum | awk '{print $1}')
             echo "source_sha=${SOURCE_SHA}" >> "$GITHUB_OUTPUT"
           else
@@ -69,7 +69,7 @@ jobs:
           VERSION="${{ steps.check.outputs.latest_version }}"
           SOURCE_SHA="${{ steps.check.outputs.source_sha }}"
 
-          sed -i "s|^  url \".*\"|  url \"https://github.com/hanthor/bluefin-cli/archive/refs/tags/v${VERSION}.tar.gz\"|" Formula/bluefin-cli.rb
+          sed -i "s|^  url \".*\"|  url \"https://github.com/tuna-os/bluefin-cli/archive/refs/tags/v${VERSION}.tar.gz\"|" Formula/bluefin-cli.rb
           sed -i "s|^  sha256 \".*\"|  sha256 \"${SOURCE_SHA}\"|" Formula/bluefin-cli.rb
 
       - name: Create PR for formula update
