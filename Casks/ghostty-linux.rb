@@ -30,7 +30,6 @@ cask "ghostty-linux" do
 
     xdg_data = ENV.fetch("XDG_DATA_HOME", "#{Dir.home}/.local/share")
     FileUtils.mkdir_p "#{xdg_data}/applications"
-    FileUtils.mkdir_p "#{xdg_data}/systemd/user"
 
     # Create wrapper script to execute AppRun from the correct directory
     # (upstream switched from binary AppRun to shell script in v1.2.3 which
@@ -46,10 +45,12 @@ cask "ghostty-linux" do
   postflight do
     xdg_data = ENV.fetch("XDG_DATA_HOME", "#{Dir.home}/.local/share")
 
-    # keep the app-id filename (GNOME window matching) and the Exec arguments
+    # keep the app-id filename (GNOME window matching) and the Exec arguments;
+    # disable D-Bus activation since the bundled service file execs a CI path
     desktop_content = File.read("#{staged_path}/squashfs-root/com.mitchellh.ghostty.desktop")
     desktop_content.gsub!(/^TryExec=\S+/, "TryExec=#{HOMEBREW_PREFIX}/bin/ghostty")
     desktop_content.gsub!(/^Exec=\S+/, "Exec=#{HOMEBREW_PREFIX}/bin/ghostty")
+    desktop_content.gsub!(/^DBusActivatable=true$/, "DBusActivatable=false")
     File.write("#{xdg_data}/applications/com.mitchellh.ghostty.desktop", desktop_content)
 
     # install icons under the name the desktop file's Icon= key references
@@ -59,19 +60,23 @@ cask "ghostty-linux" do
       FileUtils.mkdir_p target_dir
       FileUtils.cp(icon, "#{target_dir}/com.mitchellh.ghostty.png")
     end
+    system "gtk-update-icon-cache", "-f", "-t", "#{xdg_data}/icons/hicolor"
 
-    FileUtils.cp("#{staged_path}/squashfs-root/share/dbus-1/services/com.mitchellh.ghostty.service",
-                 "#{xdg_data}/systemd/user/com.mitchellh.ghostty.service")
+    # clean up files older cask revisions installed under wrong names/locations
+    FileUtils.rm("#{xdg_data}/applications/ghostty.desktop", force: true)
+    FileUtils.rm("#{xdg_data}/icons/ghostty.png", force: true)
+    FileUtils.rm("#{xdg_data}/systemd/user/com.mitchellh.ghostty.service", force: true)
   end
 
   uninstall_postflight do
     xdg_data = ENV.fetch("XDG_DATA_HOME", "#{Dir.home}/.local/share")
     FileUtils.rm("#{xdg_data}/applications/com.mitchellh.ghostty.desktop", force: true)
     FileUtils.rm(Dir["#{xdg_data}/icons/hicolor/*/apps/com.mitchellh.ghostty.png"], force: true)
-    FileUtils.rm("#{xdg_data}/systemd/user/com.mitchellh.ghostty.service", force: true)
+    system "gtk-update-icon-cache", "-f", "-t", "#{xdg_data}/icons/hicolor"
     # leftovers from cask revisions that installed under the wrong names
     FileUtils.rm("#{xdg_data}/applications/ghostty.desktop", force: true)
     FileUtils.rm("#{xdg_data}/icons/ghostty.png", force: true)
+    FileUtils.rm("#{xdg_data}/systemd/user/com.mitchellh.ghostty.service", force: true)
   end
 
   zap trash: "~/.config/ghostty"
