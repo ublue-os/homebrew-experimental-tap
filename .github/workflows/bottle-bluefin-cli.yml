@@ -30,26 +30,37 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Read the upstream repo from the formula instead of hardcoding it:
+          # it has already moved once (hanthor -> tuna-os) and the stale
+          # hardcoded org broke every run after the transfer.
+          UPSTREAM_REPO=$(grep -oP '^  url "https://github.com/\K[^/]+/[^/]+(?=/archive/)' Formula/bluefin-cli.rb)
+          if [ -z "$UPSTREAM_REPO" ]; then
+            echo "Could not determine upstream repo from Formula/bluefin-cli.rb" >&2
+            exit 1
+          fi
+          echo "Upstream repo: ${UPSTREAM_REPO}"
+          echo "upstream_repo=${UPSTREAM_REPO}" >> "$GITHUB_OUTPUT"
+
           if [ -n "${{ github.event.client_payload.version || github.event.inputs.version }}" ]; then
             TARGET_INPUT="${{ github.event.client_payload.version || github.event.inputs.version }}"
             TARGET_TAG="${TARGET_INPUT#v}"
             echo "Checking manual version request: ${TARGET_TAG}"
           else
             echo "Checking for latest GitHub release..."
-            TARGET_TAG=$(gh release view --repo hanthor/bluefin-cli --json tagName --jq .tagName)
+            TARGET_TAG=$(gh release view --repo "$UPSTREAM_REPO" --json tagName --jq .tagName)
             TARGET_TAG="${TARGET_TAG#v}"
           fi
 
           echo "latest_version=${TARGET_TAG}" >> "$GITHUB_OUTPUT"
 
-          CURRENT_VERSION=$(grep -oP '^  url "https://github.com/hanthor/bluefin-cli/archive/refs/tags/v\K[^\"]+(?=\.tar\.gz")' Formula/bluefin-cli.rb)
+          CURRENT_VERSION=$(grep -oP '^  url "https://github.com/[^/]+/[^/]+/archive/refs/tags/v\K[^\"]+(?=\.tar\.gz")' Formula/bluefin-cli.rb)
           echo "current_version=${CURRENT_VERSION}" >> "$GITHUB_OUTPUT"
 
           if [ "$TARGET_TAG" != "$CURRENT_VERSION" ]; then
             echo "needs_update=true" >> "$GITHUB_OUTPUT"
             echo "Update needed: $CURRENT_VERSION -> $TARGET_TAG"
 
-            SOURCE_URL="https://github.com/hanthor/bluefin-cli/archive/refs/tags/v${TARGET_TAG}.tar.gz"
+            SOURCE_URL="https://github.com/${UPSTREAM_REPO}/archive/refs/tags/v${TARGET_TAG}.tar.gz"
             SOURCE_SHA=$(curl -fsSL "$SOURCE_URL" | sha256sum | awk '{print $1}')
             echo "source_sha=${SOURCE_SHA}" >> "$GITHUB_OUTPUT"
           else
@@ -68,8 +79,9 @@ jobs:
         run: |
           VERSION="${{ steps.check.outputs.latest_version }}"
           SOURCE_SHA="${{ steps.check.outputs.source_sha }}"
+          UPSTREAM_REPO="${{ steps.check.outputs.upstream_repo }}"
 
-          sed -i "s|^  url \".*\"|  url \"https://github.com/hanthor/bluefin-cli/archive/refs/tags/v${VERSION}.tar.gz\"|" Formula/bluefin-cli.rb
+          sed -i "s|^  url \".*\"|  url \"https://github.com/${UPSTREAM_REPO}/archive/refs/tags/v${VERSION}.tar.gz\"|" Formula/bluefin-cli.rb
           sed -i "s|^  sha256 \".*\"|  sha256 \"${SOURCE_SHA}\"|" Formula/bluefin-cli.rb
 
       - name: Create PR for formula update
