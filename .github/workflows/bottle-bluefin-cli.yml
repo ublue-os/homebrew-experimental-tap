@@ -30,9 +30,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Read the upstream repo from the formula instead of hardcoding it:
-          # it has already moved once (hanthor -> tuna-os) and the stale
-          # hardcoded org broke every run after the transfer.
+          # read the upstream repo from the formula so org transfers don't break this
           UPSTREAM_REPO=$(grep -oP '^  url "https://github.com/\K[^/]+/[^/]+(?=/archive/)' Formula/bluefin-cli.rb)
           if [ -z "$UPSTREAM_REPO" ]; then
             echo "Could not determine upstream repo from Formula/bluefin-cli.rb" >&2

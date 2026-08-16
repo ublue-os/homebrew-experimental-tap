@@ -20,33 +20,18 @@ jobs:
       issues: write
 
     steps:
-      - name: Install Homebrew if missing
-        run: |
-          if ! /home/linuxbrew/.linuxbrew/bin/brew --version >/dev/null 2>&1; then
-            echo "Homebrew not found, installing..."
-            NONINTERACTIVE=1 /bin/bash -c \
-              "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-          else
-            echo "Homebrew already installed"
-          fi
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-          brew tap --force "${{ github.repository }}"
+      # Runs brew from master; stable brew evaluates linux-only casks under
+      # simulated macOS and fails to rewrite their sha256 stanzas.
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@8f3d1ec8a696b3b9d9a6c3696b6c73033cab69e4 # master
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-          # `brew audit` resolves build dependencies against the core tap. Without it
-          # bluefin-cli fails every run with "Can't find dependency 'go'", because
-          # this job hand-rolls the Homebrew install rather than using
-          # Homebrew/actions/setup-homebrew (which taps core for the other workflows).
-          brew tap --force homebrew/core
-
-          {
-            echo "HOMEBREW_PREFIX=$HOMEBREW_PREFIX"
-            echo "HOMEBREW_CELLAR=$HOMEBREW_CELLAR"
-            echo "HOMEBREW_REPOSITORY=$HOMEBREW_REPOSITORY"
-            echo "PATH=$PATH"
-            echo "MANPATH=$MANPATH"
-            echo "INFOPATH=$INFOPATH"
-          } >> "$GITHUB_ENV"
+      # brew audit needs core to resolve bluefin-cli's go dependency
+      - name: Tap homebrew/core
+        run: brew tap --force homebrew/core
 
       # Attribute bump commits to the bot that actually opens the PR. This was
       # hardcoded to `lambdaclan`, a real GitHub user who is not a collaborator on
@@ -68,6 +53,8 @@ jobs:
           HOMEBREW_DEVELOPER: 1
           HOMEBREW_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # keep brew bump's exit code across the tee pipe
+          set -o pipefail
           brew bump --tap ${{ github.repository }} --open-pr --no-fork 2>&1 | tee bump_output.log
 
       - name: Create issues for failed audits
