@@ -2,9 +2,9 @@ cask "datagrip-linux" do
   arch arm: "-aarch64"
   os linux: "linux"
 
-  version "2026.2.3,262.9437.163"
-  sha256 arm64_linux:  "c59e9df18e25e149123caae50da2f20971f84320f0fb2a81e3546ebe72fadd7d",
-         x86_64_linux: "7338e3bc75bc34bbac60fffa1528cbeab850d1a6826adbff298f4bb31d058260"
+  version "2026.2.4,262.10315.24"
+  sha256 arm64_linux:  "8e92a6ff676d2a9d2d816962a84529d8480aac783328551444c70a6c4a3434e7",
+         x86_64_linux: "82b437a8e0dc2fd1ae0f876fb9cef2f5ffdfbeeed33e70e70e266bee35847510"
 
   url "https://download.jetbrains.com/datagrip/datagrip-#{version.csv.first}#{arch}.tar.gz"
   name "DataGrip"
