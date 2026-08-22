@@ -1,9 +1,9 @@
 cask "positron-linux" do
   arch arm: "arm64", intel: "x64"
 
-  version "2026.08.1-2"
-  sha256 arm64_linux:  "78ccb9b8f25f6a0c99fd233367f6675c24001bf54347d5ad694423020976d7ca",
-         x86_64_linux: "e307d3710b054de4236b62591702419887d73bdb65e8253f279fc7663d3ced89"
+  version "2026.08.2-4"
+  sha256 arm64_linux:  "10765960b1aaba292685660f8efefe2387f56644afc88f50ea74495ef806064d",
+         x86_64_linux: "0e694502bdb876b7eea962b6dae3d77c7bcf22ebd0aedab7625e61520718dcea"
 
   url "https://cdn.posit.co/positron/releases/deb/#{(arch == "arm64") ? "arm64" : "x86_64"}/Positron-#{version}-#{arch}.deb",
       verified: "cdn.posit.co/positron/"
