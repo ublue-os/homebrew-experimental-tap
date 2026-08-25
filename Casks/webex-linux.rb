@@ -19,6 +19,7 @@ cask "webex-linux" do
   depends_on linux: :any
   depends_on formula: "cpio"
   depends_on formula: "rpm2cpio"
+  depends_on formula: "libxcrypt-compat"
 
   binary "opt/Webex/bin/CiscoCollabHost", target: "webex"
   artifact "opt/Webex/bin/sparklogosmall.png",
@@ -49,6 +50,16 @@ cask "webex-linux" do
            "x-scheme-handler/webexteams",
            "x-scheme-handler/ciscospark",
            "x-scheme-handler/webex"
+
+    webex_wrapper = HOMEBREW_PREFIX/"bin/webex"
+    if webex_wrapper.exist?
+      libxcrypt_lib = Formula["libxcrypt-compat"].lib
+      content = File.read(webex_wrapper)
+      unless content.include?(libxcrypt_lib.to_s)
+        content.gsub!(/^exec /, "export LD_LIBRARY_PATH=\"#{libxcrypt_lib}:$LD_LIBRARY_PATH\"\nexec ")
+        File.write(webex_wrapper, content)
+      end
+    end
   end
 
   zap trash: [
@@ -62,7 +73,7 @@ cask "webex-linux" do
   caveats <<~EOS
     Webex does not bundle every library it links against. Install them before
     launching if missing:
-      Fedora/RHEL-family: sudo rpm-ostree install libXScrnSaver libxcrypt-compat
-      Debian/Ubuntu-family: sudo apt install libxss1 libcrypt1
+      Fedora/RHEL-family: sudo rpm-ostree install libXScrnSaver
+      Debian/Ubuntu-family: sudo apt install libxss1
   EOS
 end
