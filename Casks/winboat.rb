@@ -2,8 +2,8 @@ cask "winboat" do
   arch arm: "arm64", intel: "x64"
   os linux: "linux"
 
-  version "0.9.0"
-  sha256 "9be10ccc06d0f999d10075cd127fba694eda841d3a533bde3776552fa66ae9e5"
+  version "0.9.2"
+  sha256 "aa5a6ae3e28367dce234d146d4866cea02ae840713b65d8d7456eb277a4e8c98"
 
   url "https://github.com/TibixDev/winboat/releases/download/v#{version}/winboat-#{version}-x64.tar.gz"
   name "Winboat"
