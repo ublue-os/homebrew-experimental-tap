@@ -1,6 +1,6 @@
 cask "proton-mail-bridge-linux" do
-  version "3.25.0"
-  sha256 "6b0318f4f425ef1a19b63e2bd589bc1036d95f073cb9ac26b42c0fc63a8bc275"
+  version "3.26.0"
+  sha256 "c076872522ce2f0facd0e64764d7d588b3a1ed213ff3acd25386b51e8a1f02e8"
 
   url "https://github.com/ProtonMail/proton-bridge/releases/download/v#{version}/protonmail-bridge_#{version}-1_amd64.deb",
       verified: "github.com/ProtonMail/proton-bridge/"
