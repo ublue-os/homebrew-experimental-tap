@@ -1,6 +1,6 @@
 cask "craft-agents-linux" do
-  version "0.13.0"
-  sha256 "fccd27e6b5cdf1b854ba97582c5eff839d94a35b76f23c8286d9f9d85266b7e4"
+  version "0.13.1"
+  sha256 "c895a8dd1155aac3d98af59dbba219fdcad07723f4299dd1d125f78df493f445"
 
   url "https://github.com/craft-ai-agents/craft-agents-oss/releases/download/v#{version}/Craft-Agents-#{version}-linux-x64.AppImage"
   name "Craft Agents"
