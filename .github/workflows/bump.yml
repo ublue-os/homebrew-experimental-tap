@@ -25,7 +25,7 @@ jobs:
       # Runs brew from master; stable brew evaluates linux-only casks under
       # simulated macOS and fails to rewrite their sha256 stanzas.
       - name: Set up Homebrew
-        uses: Homebrew/actions/setup-homebrew@c69e528904c52915e7f40e120fc7d49773bbb2a0 # master
+        uses: Homebrew/actions/setup-homebrew@f8d4222eb633e65c2a0157383cf80861fc7fae7f # master
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -39,7 +39,7 @@ jobs:
       # the PR itself came from github-actions[bot]. That mismatch is also why the
       # test-bot run on each bump PR sat pending until a maintainer approved it.
       - name: Configure git
-        uses: Homebrew/actions/git-user-config@c69e528904c52915e7f40e120fc7d49773bbb2a0 # main
+        uses: Homebrew/actions/git-user-config@f8d4222eb633e65c2a0157383cf80861fc7fae7f # main
         with:
           username: github-actions[bot]
 
