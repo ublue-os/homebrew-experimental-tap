@@ -2,8 +2,7 @@ cask "devpod-linux" do
   version "0.6.15"
   sha256 "eb8bfefc4f2c3f20bce370877e985fcc750858f7f06a5db06cfe339cd1eca9ba"
 
-  url "https://github.com/loft-sh/devpod/releases/download/v#{version}/DevPod_linux_amd64.AppImage",
-      verified: "github.com/loft-sh/devpod/"
+  url "https://github.com/loft-sh/devpod/releases/download/v#{version}/DevPod_linux_amd64.AppImage"
   name "DevPod"
   desc "Reproducible developer environments using dev containers"
   homepage "https://devpod.sh/"

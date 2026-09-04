@@ -2,8 +2,7 @@ cask "webex-linux" do
   version "46.8.0.35631"
   sha256 :no_check
 
-  url "https://binaries.webex.com/WebexDesktop-CentOS-Official-Package/Webex.rpm",
-      verified: "binaries.webex.com/WebexDesktop-CentOS-Official-Package/"
+  url "https://binaries.webex.com/WebexDesktop-CentOS-Official-Package/Webex.rpm"
   name "Webex"
   desc "Calling, messaging, and meeting app by Cisco"
   homepage "https://www.webex.com/downloads.html"

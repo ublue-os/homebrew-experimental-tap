@@ -2,8 +2,7 @@ cask "windsurf-linux" do
   version "3.4.27,0d4bf12ed4a7597cb8ae9016fe8474468aad98a2"
   sha256 "80850124b31331f63c24a201d1317bdacdfb438fb2bcc9b31c9b7a6391391619"
 
-  url "https://windsurf-stable.codeiumdata.com/linux-x64/stable/#{version.csv.second}/Devin-linux-x64-#{version.csv.first}.tar.gz",
-      verified: "windsurf-stable.codeiumdata.com/"
+  url "https://windsurf-stable.codeiumdata.com/linux-x64/stable/#{version.csv.second}/Devin-linux-x64-#{version.csv.first}.tar.gz"
   name "Windsurf (Devin)"
   desc "AI-powered IDE from Codeium/Cognition, formerly Windsurf Editor"
   homepage "https://windsurf.com/"

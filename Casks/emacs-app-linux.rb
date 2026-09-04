@@ -10,8 +10,7 @@ cask "emacs-app-linux" do
   sha256 arm64_linux:  "d2471179e3a7691148a585c04c573a9dc95ee26b448624f4a8131d73c2234698",
          x86_64_linux: "2d3d1c145fe8f0edf51f1275c5109eee116f98e2899498ca710ab96858fa0a70"
 
-  url "https://github.com/daegalus/linux-app-builds/releases/download/emacs-pgtk-#{version}/emacs-pgtk-#{version.split("-").first}-fedora-latest-#{arch}.tar.gz",
-      verified: "github.com/daegalus/linux-app-builds/"
+  url "https://github.com/daegalus/linux-app-builds/releases/download/emacs-pgtk-#{version}/emacs-pgtk-#{version.split("-").first}-fedora-latest-#{arch}.tar.gz"
   name "Emacs PGTK"
   desc "Text editor with PGTK support (Native Wayland and X11)"
   homepage "https://github.com/daegalus/linux-app-builds"

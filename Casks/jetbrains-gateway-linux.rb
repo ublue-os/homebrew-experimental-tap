@@ -5,8 +5,7 @@ cask "jetbrains-gateway-linux" do
   sha256 arm64_linux:  "4b145192467e729641b56073a6275ccdd4f117b640479d43a6d1f2f74baabcda",
          x86_64_linux: "5a3d333acc54ab8d091dc3e635b069a4ddda3faf7dace84966df87cdc7b8fce3"
 
-  url "https://download.jetbrains.com/idea/gateway/JetBrainsGateway-#{version}#{"-aarch64" if arch == "aarch64"}.tar.gz",
-      verified: "download.jetbrains.com/idea/gateway/"
+  url "https://download.jetbrains.com/idea/gateway/JetBrainsGateway-#{version}#{"-aarch64" if arch == "aarch64"}.tar.gz"
   name "JetBrains Gateway"
   desc "Connect to remote development environments with JetBrains IDEs"
   homepage "https://www.jetbrains.com/remote-development/gateway/"
