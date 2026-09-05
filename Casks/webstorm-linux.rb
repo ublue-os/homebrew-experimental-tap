@@ -2,9 +2,9 @@ cask "webstorm-linux" do
   arch arm: "-aarch64"
   os linux: "linux"
 
-  version "2026.2.1,262.9437.145"
-  sha256 arm64_linux:  "bc0c579f17c04630d3a5ad35eb7ed52b353cdd276f0928b6b7af8d871031baac",
-         x86_64_linux: "bb0e2e345473bfa7c6645f20761a91a6fc7170598f944998e7d948d045d52b23"
+  version "2026.2.2,262.10315.144"
+  sha256 arm64_linux:  "079002c671602f79f30f35328b3b6d4184d31ee6e5009eb2cbeefa6f7d84083d",
+         x86_64_linux: "0e768599752ee03165ad40fc74a36c46a7291cea43f2752777bc321ff65c64ca"
 
   url "https://download.jetbrains.com/webstorm/WebStorm-#{version.csv.first}#{arch}.tar.gz"
   name "WebStorm"
