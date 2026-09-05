@@ -26,20 +26,20 @@ cask "chatgpt-linux" do
   artifact "usr/share/applications/chatgpt.desktop",
            target: "#{Dir.home}/.local/share/applications/chatgpt.desktop"
   artifact "usr/share/pixmaps/chatgpt.png",
-           target: "#{Dir.home}/.local/share/pixmaps/chatgpt.png"
+           target: "#{Dir.home}/.local/share/icons/chatgpt.png"
 
-  preflight do
-    rpm2cpio = Formula["rpm2cpio"].bin/"rpm2cpio"
-    cpio = Formula["cpio"].bin/"cpio"
-    rpm_path = staged_path/"chatgpt-#{version}-1.#{arch}.rpm"
-    system "sh", "-c", "'#{rpm2cpio}' '#{rpm_path}' | '#{cpio}' -idm --quiet", chdir: staged_path
-    FileUtils.rm rpm_path
+  preflight_steps do
+    # Normalise the arch- and version-specific RPM filename, then split extraction.
+    move "chatgpt-{{version}}-1.*.rpm", "chatgpt.rpm", source_glob: true
+    run "{{HOMEBREW_PREFIX}}/bin/rpm2cpio", args:        ["{{staged_path}}/chatgpt.rpm"],
+                                            stdout_path: "chatgpt.cpio"
+    run "{{HOMEBREW_PREFIX}}/bin/cpio", args: ["-idm", "--quiet"], stdin_path: "chatgpt.cpio",
+        chdir: "{{staged_path}}"
+    remove ["chatgpt.rpm", "chatgpt.cpio"]
 
-    desktop_file = staged_path/"usr/share/applications/chatgpt.desktop"
-    content = File.read(desktop_file)
-    content.gsub!(/^Exec=.*/, "Exec=#{HOMEBREW_PREFIX}/bin/chatgpt %U")
-    content.gsub!(/^Icon=.*/, "Icon=#{Dir.home}/.local/share/pixmaps/chatgpt.png")
-    File.write(desktop_file, content)
+    inreplace "usr/share/applications/chatgpt.desktop", /^Exec=.*/,
+              "Exec={{HOMEBREW_PREFIX}}/bin/chatgpt %U", audit_result: false
+    inreplace "usr/share/applications/chatgpt.desktop", /^Icon=.*/, "Icon=chatgpt", audit_result: false
   end
 
   zap trash: [

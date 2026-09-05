@@ -28,37 +28,27 @@ cask "dockerd-linux" do
   binary "docker-rootless-extras/dockerd-rootless.sh", target: "dockerd-rootless"
   binary "docker-rootless-extras/rootlesskit"
 
-  preflight do
-    extras_url = "https://download.docker.com/linux/static/stable/x86_64/docker-rootless-extras-#{version}.tgz"
-
-    ohai "Downloading docker-rootless-extras..."
-    system_command "curl", args: ["-L", extras_url, "-o", "#{staged_path}/extras.tgz"]
-
-    ohai "Extracting extras..."
-    system_command "tar", args: ["-xzf", "#{staged_path}/extras.tgz", "-C", staged_path]
-
-    File.delete("#{staged_path}/extras.tgz")
+  preflight_steps do
+    run "curl",
+        args: ["-L", "https://download.docker.com/linux/static/stable/x86_64/docker-rootless-extras-{{version}}.tgz",
+               "-o", "extras.tgz"],
+        chdir: "{{staged_path}}", network_access: true
+    run "tar", args: ["-xzf", "extras.tgz"], chdir: "{{staged_path}}"
+    remove "extras.tgz"
   end
 
-  postflight do
-    require "fileutils"
+  postflight_steps do
+    mkdir_p ".config/systemd/user", base: :home
 
-    systemd_dir = File.expand_path("~/.config/systemd/user")
-    service_file = File.join(systemd_dir, "dockerd-rootless.service")
-
-    ohai "Creating systemd user service..."
-    FileUtils.mkdir_p(systemd_dir)
-
-    # Normal brew service don't want to work with Casks
-    service_content = <<~SERVICE
+    write_file ".config/systemd/user/dockerd-rootless.service", <<~SERVICE, base: :home
       [Unit]
       Description=Docker Application Container Engine (Rootless)
       Documentation=https://docs.docker.com/go/rootless/
 
       [Service]
-      Environment=PATH=#{HOMEBREW_PREFIX}/bin:#{HOMEBREW_PREFIX}/sbin:/usr/bin:/usr/sbin:/bin
+      Environment=PATH={{HOMEBREW_PREFIX}}/bin:{{HOMEBREW_PREFIX}}/sbin:/usr/bin:/usr/sbin:/bin
       Environment=XDG_RUNTIME_DIR=/run/user/%U
-      ExecStart=#{HOMEBREW_PREFIX}/bin/dockerd-rootless --iptables=false
+      ExecStart={{HOMEBREW_PREFIX}}/bin/dockerd-rootless --iptables=false
       ExecReload=/bin/kill -s HUP $MAINPID
       TimeoutSec=0
       RestartSec=2
@@ -80,21 +70,28 @@ cask "dockerd-linux" do
       [Install]
       WantedBy=default.target
     SERVICE
+    set_permissions ".config/systemd/user/dockerd-rootless.service", "0644", base: :home
 
-    File.write(service_file, service_content)
-    FileUtils.chmod(0644, service_file)
-
-    ohai "Systemd service created at #{service_file}"
-    ohai "Run 'systemctl --user daemon-reload' to load the service"
-    ohai "Then enable and start with: systemctl --user enable --now dockerd-rootless"
-
-    ohai "Configuring docker context..."
-    docker_cli = "#{HOMEBREW_PREFIX}/bin/docker"
-    docker_socket = "unix:///run/user/#{Process.uid}/docker.sock"
-    context_create_cmd = "#{docker_cli} context create rootless --docker host=#{docker_socket}"
-    system_command "sh",
-                   args: ["-c", "#{docker_cli} context inspect rootless >/dev/null 2>&1 || #{context_create_cmd}"]
-    system_command docker_cli, args: ["context", "use", "rootless"]
+    # Give the sandboxed Docker CLI a stable HOME whose .docker directory is a
+    # narrow handle onto the real user's config directory.
+    mkdir_p ".docker", base: :home
+    mkdir_p "docker-home"
+    symlink ".docker", "docker-home/.docker", source_base: :home
+    write_file "configure-docker-context.sh", <<~SH
+      #!/bin/sh
+      docker_cli="{{HOMEBREW_PREFIX}}/bin/docker"
+      docker_socket="unix:///run/user/$(id -u)/docker.sock"
+      "$docker_cli" context inspect rootless >/dev/null 2>&1 || \
+        "$docker_cli" context create rootless --docker host="$docker_socket"
+      "$docker_cli" context use rootless
+    SH
+    set_permissions "configure-docker-context.sh", "0755"
+    run "configure-docker-context.sh", base: :staged_path,
+                                       env: {
+                                         "DOCKER_CONFIG" => "{{staged_path}}/docker-home/.docker",
+                                         "HOME"          => "{{staged_path}}/docker-home",
+                                       },
+                                       writable_paths: [".docker"], writable_base: :home
   end
 
   # Does not seem work...

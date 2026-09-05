@@ -148,11 +148,10 @@ jobs:
             echo "::endgroup::"
           done
 
-      # The `promote` job below is what actually runs pr-pull; this label is kept as
-      # a visible marker of what passed. Guard it anyway, since a human seeing the
-      # label may hand-trigger publish.yml, which pushes to main.
-      - name: Label PR on Success
-        if: success()
+      # Only formula changes use pr-pull. Cask-only bumps go directly to the
+      # squash-merge job and must not receive the bottle-publishing label.
+      - name: Label formula PR on success
+        if: success() && steps.changed.outputs.formulae != ''
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |

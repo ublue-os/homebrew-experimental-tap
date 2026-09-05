@@ -28,22 +28,25 @@ cask "rider-linux" do
   conflicts_with cask: "jetbrains-toolbox-linux"
   depends_on linux: :any
 
-  binary "#{HOMEBREW_PREFIX}/Caskroom/rider-linux/#{version}/JetBrains Rider-#{version.csv.first}/bin/rider"
+  binary "rider/bin/rider"
   artifact "jetbrains-rider.desktop",
            target: "#{Dir.home}/.local/share/applications/jetbrains-rider.desktop"
-  artifact "JetBrains Rider-#{version.csv.first}/bin/rider.svg",
+  artifact "rider/bin/rider.svg",
            target: "#{Dir.home}/.local/share/icons/hicolor/scalable/apps/rider.svg"
 
-  preflight do
-    File.write("#{staged_path}/JetBrains Rider-#{version.csv.first}/bin/rider64.vmoptions", "-Dide.no.platform.update=true\n", mode: "a+")
-    FileUtils.mkdir_p("#{Dir.home}/.local/share/applications")
-    FileUtils.mkdir_p("#{Dir.home}/.local/share/icons/hicolor/scalable/apps")
-    File.write("#{staged_path}/jetbrains-rider.desktop", <<~EOS)
+  preflight_steps do
+    # Normalise the versioned directory before referring to it in declarative steps.
+    move "JetBrains Rider-*", "rider", source_glob: true
+    touch "rider/bin/rider64.vmoptions"
+    inreplace "rider/bin/rider64.vmoptions", /\z/, "-Dide.no.platform.update=true\n"
+    mkdir_p ".local/share/applications", base: :home
+    mkdir_p ".local/share/icons/hicolor/scalable/apps", base: :home
+    write_file "jetbrains-rider.desktop", <<~EOS
       [Desktop Entry]
       Version=1.0
       Name=Rider
       Comment=All-in-one IDE for .NET and game development
-      Exec=#{HOMEBREW_PREFIX}/bin/rider %u
+      Exec={{HOMEBREW_PREFIX}}/bin/rider %u
       Icon=rider
       Type=Application
       Categories=Development;IDE;
@@ -54,8 +57,12 @@ cask "rider-linux" do
     EOS
   end
 
-  postflight do
-    system "/usr/bin/xdg-icon-resource", "forceupdate"
+  postflight_steps do
+    mkdir_p "xdg-user-data"
+    symlink ".local/share", "xdg-user-data/share", source_base: :home
+    run "/usr/bin/xdg-icon-resource", args: ["forceupdate"], must_succeed: false,
+                                  env: { "XDG_DATA_HOME" => "{{staged_path}}/xdg-user-data/share" },
+                                  writable_paths: [".local/share/icons/hicolor"], writable_base: :home
   end
 
   zap trash: [

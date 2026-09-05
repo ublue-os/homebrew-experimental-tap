@@ -20,63 +20,78 @@ cask "ghostty-linux" do
 
   binary "ghostty-wrapper", target: "ghostty"
 
-  preflight do
-    appimage_path = "#{staged_path}/Ghostty-#{version}-#{arch}.AppImage"
-    system "chmod", "+x", appimage_path
-    system appimage_path, "--appimage-extract", chdir: staged_path
+  preflight_steps do
+    # Normalise the arch/version-specific AppImage filename before extraction.
+    move "Ghostty-*.AppImage", "ghostty.AppImage", source_glob: true
+    set_permissions "ghostty.AppImage", "+x"
+    run "ghostty.AppImage", args: ["--appimage-extract"], base: :staged_path,
+        chdir: "{{staged_path}}"
+    remove "ghostty.AppImage"
 
-    # Remove the original AppImage to save space
-    FileUtils.rm appimage_path
-
-    xdg_data = ENV.fetch("XDG_DATA_HOME", "#{Dir.home}/.local/share")
-    FileUtils.mkdir_p "#{xdg_data}/applications"
+    mkdir_p ".local/share/applications", base: :home
 
     # Create wrapper script to execute AppRun from the correct directory
     # (upstream switched from binary AppRun to shell script in v1.2.3 which
     # breaks symlinks since it uses $0's directory to find resources)
-    wrapper_content = <<~SH
+    write_file "ghostty-wrapper", <<~SH
       #!/bin/sh
-      exec "#{staged_path}/squashfs-root/AppRun" "$@"
+      exec "{{staged_path}}/squashfs-root/AppRun" "$@"
     SH
-    File.write("#{staged_path}/ghostty-wrapper", wrapper_content)
-    FileUtils.chmod(0755, "#{staged_path}/ghostty-wrapper")
+    set_permissions "ghostty-wrapper", "0755"
   end
 
-  postflight do
-    xdg_data = ENV.fetch("XDG_DATA_HOME", "#{Dir.home}/.local/share")
-
+  postflight_steps do
     # keep the app-id filename (GNOME window matching) and the Exec arguments;
     # disable D-Bus activation since the bundled service file execs a CI path
-    desktop_content = File.read("#{staged_path}/squashfs-root/com.mitchellh.ghostty.desktop")
-    desktop_content.gsub!(/^TryExec=\S+/, "TryExec=#{HOMEBREW_PREFIX}/bin/ghostty")
-    desktop_content.gsub!(/^Exec=\S+/, "Exec=#{HOMEBREW_PREFIX}/bin/ghostty")
-    desktop_content.gsub!(/^DBusActivatable=true$/, "DBusActivatable=false")
-    File.write("#{xdg_data}/applications/com.mitchellh.ghostty.desktop", desktop_content)
+    copy "squashfs-root/com.mitchellh.ghostty.desktop",
+         ".local/share/applications/com.mitchellh.ghostty.desktop", target_base: :home
+    inreplace ".local/share/applications/com.mitchellh.ghostty.desktop", /^TryExec=\S+/,
+              "TryExec={{HOMEBREW_PREFIX}}/bin/ghostty", base: :home, audit_result: false
+    inreplace ".local/share/applications/com.mitchellh.ghostty.desktop", /^Exec=\S+/,
+              "Exec={{HOMEBREW_PREFIX}}/bin/ghostty", base: :home, audit_result: false
+    inreplace ".local/share/applications/com.mitchellh.ghostty.desktop", /^DBusActivatable=true$/,
+              "DBusActivatable=false", base: :home, audit_result: false
 
-    # install icons under the name the desktop file's Icon= key references
-    Dir["#{staged_path}/squashfs-root/share/icons/hicolor/*/apps/com.mitchellh.ghostty.png"].each do |icon|
-      size = File.basename(File.dirname(icon, 2))
-      target_dir = "#{xdg_data}/icons/hicolor/#{size}/apps"
-      FileUtils.mkdir_p target_dir
-      FileUtils.cp(icon, "#{target_dir}/com.mitchellh.ghostty.png")
-    end
-    system "gtk-update-icon-cache", "-f", "-t", "#{xdg_data}/icons/hicolor"
+    # Copy every discovered icon size through a staged handle onto the narrowly
+    # writable hicolor tree, mirroring the original per-size loop.
+    mkdir_p ".local/share/icons/hicolor", base: :home
+    mkdir_p "ghostty-user-data"
+    symlink ".local/share", "ghostty-user-data/share", source_base: :home, overwrite: true
+    write_file "install-ghostty-icons.sh", <<~SH
+      #!/bin/sh
+      for icon in "{{staged_path}}"/squashfs-root/share/icons/hicolor/*/apps/com.mitchellh.ghostty.png; do
+        [ -f "$icon" ] || continue
+        size=$(basename "$(dirname "$(dirname "$icon")")")
+        target="{{staged_path}}/ghostty-user-data/share/icons/hicolor/$size/apps"
+        mkdir -p "$target"
+        cp "$icon" "$target/com.mitchellh.ghostty.png"
+      done
+    SH
+    set_permissions "install-ghostty-icons.sh", "0755"
+    run "install-ghostty-icons.sh", base: :staged_path,
+                                    writable_paths: [".local/share/icons/hicolor"], writable_base: :home
+    run "gtk-update-icon-cache", args: ["-f", "-t", "{{staged_path}}/ghostty-user-data/share/icons/hicolor"],
+                                 must_succeed: false,
+                                 writable_paths: [".local/share/icons/hicolor"], writable_base: :home
 
     # clean up files older cask revisions installed under wrong names/locations
-    FileUtils.rm("#{xdg_data}/applications/ghostty.desktop", force: true)
-    FileUtils.rm("#{xdg_data}/icons/ghostty.png", force: true)
-    FileUtils.rm("#{xdg_data}/systemd/user/com.mitchellh.ghostty.service", force: true)
+    remove ".local/share/applications/ghostty.desktop", base: :home
+    remove ".local/share/icons/ghostty.png", base: :home
+    remove ".local/share/systemd/user/com.mitchellh.ghostty.service", base: :home
   end
 
-  uninstall_postflight do
-    xdg_data = ENV.fetch("XDG_DATA_HOME", "#{Dir.home}/.local/share")
-    FileUtils.rm("#{xdg_data}/applications/com.mitchellh.ghostty.desktop", force: true)
-    FileUtils.rm(Dir["#{xdg_data}/icons/hicolor/*/apps/com.mitchellh.ghostty.png"], force: true)
-    system "gtk-update-icon-cache", "-f", "-t", "#{xdg_data}/icons/hicolor"
+  uninstall_postflight_steps do
+    remove ".local/share/applications/com.mitchellh.ghostty.desktop", base: :home
+    remove ".local/share/icons/hicolor/*/apps/com.mitchellh.ghostty.png", base: :home
+    mkdir_p "ghostty-user-data"
+    symlink ".local/share", "ghostty-user-data/share", source_base: :home, overwrite: true
+    run "gtk-update-icon-cache", args: ["-f", "-t", "{{staged_path}}/ghostty-user-data/share/icons/hicolor"],
+                                 must_succeed: false,
+                                 writable_paths: [".local/share/icons/hicolor"], writable_base: :home
     # leftovers from cask revisions that installed under the wrong names
-    FileUtils.rm("#{xdg_data}/applications/ghostty.desktop", force: true)
-    FileUtils.rm("#{xdg_data}/icons/ghostty.png", force: true)
-    FileUtils.rm("#{xdg_data}/systemd/user/com.mitchellh.ghostty.service", force: true)
+    remove ".local/share/applications/ghostty.desktop", base: :home
+    remove ".local/share/icons/ghostty.png", base: :home
+    remove ".local/share/systemd/user/com.mitchellh.ghostty.service", base: :home
   end
 
   zap trash: "~/.config/ghostty"

@@ -2,8 +2,7 @@ cask "gitkraken-linux" do
   version "12.4.0"
   sha256 "7f7e56b5bf345c1da3bcc3ff4f50bf51bf8292399f471e5c5bc2213bfafefb4d"
 
-  url "https://api.gitkraken.dev/releases/production/linux/x64/#{version}/gitkraken-amd64.tar.gz",
-      verified: "api.gitkraken.dev/releases/production/"
+  url "https://api.gitkraken.dev/releases/production/linux/x64/#{version}/gitkraken-amd64.tar.gz"
   name "GitKraken"
   desc "Git client focusing on productivity"
   homepage "https://www.gitkraken.com/"
@@ -21,15 +20,15 @@ cask "gitkraken-linux" do
   artifact "gitkraken.desktop",
            target: "#{Dir.home}/.local/share/applications/gitkraken.desktop"
 
-  preflight do
-    FileUtils.mkdir_p "#{Dir.home}/.local/share/applications"
+  preflight_steps do
+    mkdir_p ".local/share/applications", base: :home
 
-    File.write "#{staged_path}/gitkraken.desktop", <<~EOS
+    write_file "gitkraken.desktop", <<~EOS
       [Desktop Entry]
       Name=GitKraken
       Comment=Git client focusing on productivity
-      Exec=#{HOMEBREW_PREFIX}/bin/gitkraken %U
-      Icon=#{staged_path}/gitkraken/gitkraken.png
+      Exec={{HOMEBREW_PREFIX}}/bin/gitkraken %U
+      Icon={{staged_path}}/gitkraken/gitkraken.png
       Terminal=false
       Type=Application
       Categories=Development;RevisionControl;

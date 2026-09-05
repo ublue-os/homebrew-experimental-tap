@@ -22,130 +22,131 @@ cask "fw-fanctrl-linux" do
     end
   end
 
-  binary "#{release_root}/usr/bin/fw-fanctrl"
-  binary "#{release_root}/usr/bin/ectool"
+  binary "release/usr/bin/fw-fanctrl"
+  binary "release/usr/bin/ectool"
 
-  postflight do
-    release_dir = "#{staged_path}/#{release_root}"
-    root_prefix = "/opt/ublue-fw-fanctrl"
-    root_bin_dir = "#{root_prefix}/bin"
-    systemd_dir = "/etc/systemd/system"
-    sleep_dir = "/etc/systemd/system-sleep"
-    config_dir = "/etc/fw-fanctrl"
-
-    service_src = "#{release_dir}/usr/lib/systemd/system/fw-fanctrl.service"
-    sleep_src = "#{release_dir}/usr/lib/systemd/system-sleep/fw-fanctrl-suspend"
-    config_src = "#{release_dir}/usr/share/fw-fanctrl/config.json"
-    schema_src = "#{release_dir}/usr/share/fw-fanctrl/config.schema.json"
-
-    getenforce = %w[/usr/sbin/getenforce /usr/bin/getenforce /bin/getenforce].find do |path|
-      File.executable?(path)
-    end
-    restorecon = %w[/usr/sbin/restorecon /usr/bin/restorecon /bin/restorecon].find do |path|
-      File.executable?(path)
-    end
-    semanage = %w[/usr/sbin/semanage /usr/bin/semanage /bin/semanage].find do |path|
-      File.executable?(path)
-    end
-    chcon = %w[/usr/sbin/chcon /usr/bin/chcon /bin/chcon].find do |path|
-      File.executable?(path)
-    end
-    systemctl = %w[/usr/bin/systemctl /bin/systemctl].find do |path|
-      File.executable?(path)
-    end
-
-    ohai "Installing fw-fanctrl payload under #{root_prefix}"
-
-    system "sudo", "install", "-d",
-           root_bin_dir, systemd_dir, sleep_dir, config_dir
-
-    system "sudo", "install", "-Dm0755",
-           "#{release_dir}/usr/bin/fw-fanctrl",
-           "#{root_bin_dir}/fw-fanctrl"
-    system "sudo", "install", "-Dm0755",
-           "#{release_dir}/usr/bin/ectool",
-           "#{root_bin_dir}/ectool"
-
-    system "sudo", "install", "-Dm0644",
-           service_src,
-           "#{systemd_dir}/fw-fanctrl.service"
-    system "sudo", "install", "-Dm0755",
-           sleep_src,
-           "#{sleep_dir}/fw-fanctrl-suspend"
-    system "sudo", "install", "-Dm0644",
-           schema_src,
-           "#{config_dir}/config.schema.json"
-
-    unless File.exist?("#{config_dir}/config.json")
-      system "sudo", "install", "-Dm0644",
-             config_src,
-             "#{config_dir}/config.json"
-    end
-
-    selinux_mode = if getenforce
-      IO.popen([getenforce], &:read).strip
-    else
-      "Disabled"
-    end
-
-    if selinux_mode != "Disabled"
-      bin_pattern = "#{root_bin_dir}(/.*)?"
-
-      if semanage
-        added = system "sudo", semanage, "fcontext", "-a", "-t", "bin_t", bin_pattern
-        system "sudo", semanage, "fcontext", "-m", "-t", "bin_t", bin_pattern unless added
-      elsif chcon
-        system "sudo", chcon, "-R", "-t", "bin_t", root_bin_dir
-      end
-
-      if restorecon
-        [root_prefix, systemd_dir, sleep_dir, config_dir].each do |path|
-          system "sudo", restorecon, "-RFv", path if File.exist?(path)
-        end
-      end
-    end
-
-    system "sudo", systemctl, "daemon-reload" if systemctl
+  preflight_steps do
+    # Normalise the versioned payload directory before install.
+    move "fw-fanctrl-*", "release", source_glob: true
   end
 
-  uninstall_preflight do
-    root_prefix = "/opt/ublue-fw-fanctrl"
-    root_bin_dir = "#{root_prefix}/bin"
-    systemd_dir = "/etc/systemd/system"
-    sleep_dir = "/etc/systemd/system-sleep"
-    config_dir = "/etc/fw-fanctrl"
+  postflight_steps do
+    # The payload is installed under canonical system paths via a sudo-brokered
+    # shell step. Commands mirror the original `system("sudo", ...)` calls,
+    # which ignore non-zero exits, so the script does not `set -e`; failures
+    # inside are tolerated exactly as the legacy code tolerated them.
+    run "sh",
+        sudo: true,
+        args: ["-c", <<~SH]
+          root_prefix="/opt/ublue-fw-fanctrl"
+          root_bin_dir="$root_prefix/bin"
+          systemd_dir="/etc/systemd/system"
+          sleep_dir="/etc/systemd/system-sleep"
+          config_dir="/etc/fw-fanctrl"
+          release_dir="{{staged_path}}/release"
 
-    getenforce = %w[/usr/sbin/getenforce /usr/bin/getenforce /bin/getenforce].find do |path|
-      File.executable?(path)
-    end
-    restorecon = %w[/usr/sbin/restorecon /usr/bin/restorecon /bin/restorecon].find do |path|
-      File.executable?(path)
-    end
-    semanage = %w[/usr/sbin/semanage /usr/bin/semanage /bin/semanage].find do |path|
-      File.executable?(path)
-    end
-    systemctl = %w[/usr/bin/systemctl /bin/systemctl].find do |path|
-      File.executable?(path)
-    end
+          service_src="$release_dir/usr/lib/systemd/system/fw-fanctrl.service"
+          sleep_src="$release_dir/usr/lib/systemd/system-sleep/fw-fanctrl-suspend"
+          config_src="$release_dir/usr/share/fw-fanctrl/config.json"
+          schema_src="$release_dir/usr/share/fw-fanctrl/config.schema.json"
 
-    system "sudo", systemctl, "disable", "--now", "fw-fanctrl.service" if systemctl
+          getenforce_cmd=""; for p in /usr/sbin/getenforce /usr/bin/getenforce /bin/getenforce; do
+            [ -x "$p" ] && getenforce_cmd="$p" && break; done
+          restorecon_cmd=""; for p in /usr/sbin/restorecon /usr/bin/restorecon /bin/restorecon; do
+            [ -x "$p" ] && restorecon_cmd="$p" && break; done
+          semanage_cmd=""; for p in /usr/sbin/semanage /usr/bin/semanage /bin/semanage; do
+            [ -x "$p" ] && semanage_cmd="$p" && break; done
+          chcon_cmd=""; for p in /usr/sbin/chcon /usr/bin/chcon /bin/chcon; do
+            [ -x "$p" ] && chcon_cmd="$p" && break; done
+          systemctl_cmd=""; for p in /usr/bin/systemctl /bin/systemctl; do
+            [ -x "$p" ] && systemctl_cmd="$p" && break; done
 
-    selinux_mode = if getenforce
-      IO.popen([getenforce], &:read).strip
-    else
-      "Disabled"
-    end
+          install -d "$root_bin_dir" "$systemd_dir" "$sleep_dir" "$config_dir"
+          install -Dm0755 "$release_dir/usr/bin/fw-fanctrl" "$root_bin_dir/fw-fanctrl"
+          install -Dm0755 "$release_dir/usr/bin/ectool" "$root_bin_dir/ectool"
+          install -Dm0644 "$service_src" "$systemd_dir/fw-fanctrl.service"
+          install -Dm0755 "$sleep_src" "$sleep_dir/fw-fanctrl-suspend"
+          install -Dm0644 "$schema_src" "$config_dir/config.schema.json"
+          if [ ! -f "$config_dir/config.json" ]; then
+            install -Dm0644 "$config_src" "$config_dir/config.json"
+          fi
 
-    system "sudo", semanage, "fcontext", "-d", "#{root_bin_dir}(/.*)?" if selinux_mode != "Disabled" && semanage
+          if [ -n "$getenforce_cmd" ]; then
+            selinux_mode="$("$getenforce_cmd" 2>/dev/null)"
+          else
+            selinux_mode="Disabled"
+          fi
+          selinux_mode="${selinux_mode:-Disabled}"
 
-    system "sudo", "rm", "-f", "#{systemd_dir}/fw-fanctrl.service"
-    system "sudo", "rm", "-f", "#{sleep_dir}/fw-fanctrl-suspend"
-    system "sudo", "rm", "-f", "#{config_dir}/config.schema.json"
-    system "sudo", "rm", "-rf", root_prefix
-    system "sudo", "rmdir", config_dir if Dir.exist?(config_dir) && Dir.empty?(config_dir)
+          if [ "$selinux_mode" != "Disabled" ]; then
+            bin_pattern="$root_bin_dir(/.*)?"
+            if [ -n "$semanage_cmd" ]; then
+              if "$semanage_cmd" fcontext -a -t bin_t "$bin_pattern" 2>/dev/null; then
+                :
+              else
+                "$semanage_cmd" fcontext -m -t bin_t "$bin_pattern" 2>/dev/null || true
+              fi
+            elif [ -n "$chcon_cmd" ]; then
+              "$chcon_cmd" -R -t bin_t "$root_bin_dir" 2>/dev/null || true
+            fi
+            if [ -n "$restorecon_cmd" ]; then
+              for path in "$root_prefix" "$systemd_dir" "$sleep_dir" "$config_dir"; do
+                [ -e "$path" ] && "$restorecon_cmd" -RFv "$path" 2>/dev/null || true
+              done
+            fi
+          fi
 
-    system "sudo", systemctl, "daemon-reload" if systemctl
-    system "sudo", restorecon, "-RFv", "/opt", "/var/opt" if restorecon && selinux_mode != "Disabled"
+          [ -z "$systemctl_cmd" ] || "$systemctl_cmd" daemon-reload 2>/dev/null || true
+        SH
+  end
+
+  uninstall_preflight_steps do
+    # The payload is removed under canonical system paths via a sudo-brokered
+    # shell step. Commands mirror the original `system("sudo", ...)` semantics
+    # (errors ignored), so the script does not `set -e`.
+    run "sh",
+        sudo: true,
+        args: ["-c", <<~SH]
+          root_prefix="/opt/ublue-fw-fanctrl"
+          root_bin_dir="$root_prefix/bin"
+          systemd_dir="/etc/systemd/system"
+          sleep_dir="/etc/systemd/system-sleep"
+          config_dir="/etc/fw-fanctrl"
+
+          getenforce_cmd=""; for p in /usr/sbin/getenforce /usr/bin/getenforce /bin/getenforce; do
+            [ -x "$p" ] && getenforce_cmd="$p" && break; done
+          restorecon_cmd=""; for p in /usr/sbin/restorecon /usr/bin/restorecon /bin/restorecon; do
+            [ -x "$p" ] && restorecon_cmd="$p" && break; done
+          semanage_cmd=""; for p in /usr/sbin/semanage /usr/bin/semanage /bin/semanage; do
+            [ -x "$p" ] && semanage_cmd="$p" && break; done
+          systemctl_cmd=""; for p in /usr/bin/systemctl /bin/systemctl; do
+            [ -x "$p" ] && systemctl_cmd="$p" && break; done
+
+          [ -z "$systemctl_cmd" ] || "$systemctl_cmd" disable --now fw-fanctrl.service 2>/dev/null
+
+          if [ -n "$getenforce_cmd" ]; then
+            selinux_mode="$("$getenforce_cmd" 2>/dev/null)"
+          else
+            selinux_mode="Disabled"
+          fi
+          selinux_mode="${selinux_mode:-Disabled}"
+          if [ "$selinux_mode" != "Disabled" ] && [ -n "$semanage_cmd" ]; then
+            "$semanage_cmd" fcontext -d "$root_bin_dir(/.*)?" 2>/dev/null || true
+          fi
+
+          rm -f "$systemd_dir/fw-fanctrl.service"
+          rm -f "$sleep_dir/fw-fanctrl-suspend"
+          rm -f "$config_dir/config.schema.json"
+          rm -rf "$root_prefix"
+          if [ -d "$config_dir" ] && [ -z "$(ls -A "$config_dir" 2>/dev/null)" ]; then
+            rmdir "$config_dir" 2>/dev/null || true
+          fi
+
+          [ -z "$systemctl_cmd" ] || "$systemctl_cmd" daemon-reload 2>/dev/null || true
+          if [ -n "$restorecon_cmd" ] && [ "$selinux_mode" != "Disabled" ]; then
+            "$restorecon_cmd" -RFv /opt /var/opt 2>/dev/null || true
+          fi
+        SH
   end
 
   caveats <<~EOS

@@ -28,22 +28,25 @@ cask "clion-linux" do
   conflicts_with cask: "jetbrains-toolbox-linux"
   depends_on linux: :any
 
-  binary "#{HOMEBREW_PREFIX}/Caskroom/clion-linux/#{version}/clion-#{version.csv.first}/bin/clion"
+  binary "clion/bin/clion"
   artifact "jetbrains-clion.desktop",
            target: "#{Dir.home}/.local/share/applications/jetbrains-clion.desktop"
-  artifact "clion-#{version.csv.first}/bin/clion.svg",
+  artifact "clion/bin/clion.svg",
            target: "#{Dir.home}/.local/share/icons/hicolor/scalable/apps/clion.svg"
 
-  preflight do
-    File.write("#{staged_path}/clion-#{version.csv.first}/bin/clion64.vmoptions", "-Dide.no.platform.update=true\n", mode: "a+")
-    FileUtils.mkdir_p("#{Dir.home}/.local/share/applications")
-    FileUtils.mkdir_p("#{Dir.home}/.local/share/icons/hicolor/scalable/apps")
-    File.write("#{staged_path}/jetbrains-clion.desktop", <<~EOS)
+  preflight_steps do
+    # Normalise the versioned directory before referring to it in declarative steps.
+    move "clion-*", "clion", source_glob: true
+    touch "clion/bin/clion64.vmoptions"
+    inreplace "clion/bin/clion64.vmoptions", /\z/, "-Dide.no.platform.update=true\n"
+    mkdir_p ".local/share/applications", base: :home
+    mkdir_p ".local/share/icons/hicolor/scalable/apps", base: :home
+    write_file "jetbrains-clion.desktop", <<~EOS
       [Desktop Entry]
       Version=1.0
       Name=CLion
       Comment=A cross-platform C and C++ IDE
-      Exec=#{HOMEBREW_PREFIX}/bin/clion %u
+      Exec={{HOMEBREW_PREFIX}}/bin/clion %u
       Icon=clion
       Type=Application
       Categories=Development;IDE;
@@ -54,8 +57,12 @@ cask "clion-linux" do
     EOS
   end
 
-  postflight do
-    system "/usr/bin/xdg-icon-resource", "forceupdate"
+  postflight_steps do
+    mkdir_p "xdg-user-data"
+    symlink ".local/share", "xdg-user-data/share", source_base: :home
+    run "/usr/bin/xdg-icon-resource", args: ["forceupdate"], must_succeed: false,
+                                  env: { "XDG_DATA_HOME" => "{{staged_path}}/xdg-user-data/share" },
+                                  writable_paths: [".local/share/icons/hicolor"], writable_base: :home
   end
 
   zap trash: [

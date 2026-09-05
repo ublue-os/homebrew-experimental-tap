@@ -2,8 +2,7 @@ cask "tableplus-linux" do
   version "0.1.308"
   sha256 "b2a880fa2099aea1cf224876e097a3b5f06f20bb59b771cdd9b29fff549cef5e"
 
-  url "https://deb.tableplus.com/debian/22/pool/main/t/tableplus/tableplus_#{version}_amd64.deb",
-      verified: "deb.tableplus.com/"
+  url "https://deb.tableplus.com/debian/22/pool/main/t/tableplus/tableplus_#{version}_amd64.deb"
   name "TablePlus"
   desc "Modern, native database GUI client supporting multiple databases"
   homepage "https://tableplus.com/"
@@ -22,38 +21,54 @@ cask "tableplus-linux" do
 
   binary "usr/bin/tableplus", target: "tableplus"
 
-  preflight do
-    xdg_data = ENV.fetch("XDG_DATA_HOME", "#{Dir.home}/.local/share")
-    FileUtils.mkdir_p "#{xdg_data}/applications"
-    FileUtils.mkdir_p "#{xdg_data}/icons/hicolor/256x256/apps"
-
-    # Extract the deb package
-    deb_file = "#{staged_path}/tableplus_#{version}_amd64.deb"
-    system "dpkg", "-x", deb_file, staged_path
-    FileUtils.rm(deb_file, force: true)
+  preflight_steps do
+    # Normalise the versioned deb filename, then extract.
+    move "tableplus_*_amd64.deb", "tableplus.deb", source_glob: true
+    run "{{HOMEBREW_PREFIX}}/opt/dpkg/bin/dpkg-deb",
+        args: ["-x", "{{staged_path}}/tableplus.deb", "{{staged_path}}"]
+    remove "tableplus.deb"
   end
 
-  postflight do
-    xdg_data = ENV.fetch("XDG_DATA_HOME", "#{Dir.home}/.local/share")
+  postflight_steps do
+    mkdir_p ".local/share/applications", base: :home
+    mkdir_p ".local/share/icons/hicolor/256x256/apps", base: :home
 
-    icon_source = Dir.glob("#{staged_path}/usr/share/icons/**/*.png").min_by { |f| -File.size(f) }
-    icon_target = "#{xdg_data}/icons/hicolor/256x256/apps/tableplus.png"
-    FileUtils.cp(icon_source, icon_target) if icon_source && File.exist?(icon_source)
+    # Select the largest icon and the first desktop file within staged_path first,
+    # mirroring the original `Dir.glob(...).min_by { -File.size }` / `.first` picks.
+    run "sh", args: ["-eu", "-c", <<~'SH']
+      staged="{{staged_path}}"
+      tab=$(printf '\t')
+      icon_src=$(find "$staged/usr/share/icons" -type f -name '*.png' -printf '%s\t%p\0' 2>/dev/null |
+        LC_ALL=C sort -z -t "$tab" -k1,1nr -k2,2 | head -z -n 1 | cut -z -f2-)
+      if [ -n "$icon_src" ] && [ -f "$icon_src" ]; then
+        cp "$icon_src" "$staged/tableplus.icon.png"
+      fi
+      desktop_src=$(ls "$staged"/usr/share/applications/*.desktop 2>/dev/null | head -1)
+      if [ -n "$desktop_src" ] && [ -f "$desktop_src" ]; then
+        cp "$desktop_src" "$staged/tableplus.desktop"
+      fi
+    SH
 
-    desktop_source = Dir.glob("#{staged_path}/usr/share/applications/*.desktop").first
-    if desktop_source && File.exist?(desktop_source)
-      desktop_content = File.read(desktop_source)
-      desktop_content.gsub!(/^Exec=.*/, "Exec=#{HOMEBREW_PREFIX}/bin/tableplus %U")
-      desktop_content.gsub!(/^Icon=.*/, "Icon=#{icon_target}")
-      File.write("#{xdg_data}/applications/tableplus.desktop", desktop_content)
-    else
-      File.write("#{xdg_data}/applications/tableplus.desktop", <<~EOS)
+    if_path_exists "tableplus.icon.png" do
+      copy "tableplus.icon.png", ".local/share/icons/hicolor/256x256/apps/tableplus.png",
+           target_base: :home
+    end
+
+    if_path_exists "tableplus.desktop" do
+      copy "tableplus.desktop", ".local/share/applications/tableplus.desktop", target_base: :home
+      inreplace ".local/share/applications/tableplus.desktop", /^Exec=.*/,
+                "Exec={{HOMEBREW_PREFIX}}/bin/tableplus %U", base: :home, audit_result: false
+      inreplace ".local/share/applications/tableplus.desktop", /^Icon=.*/,
+                "Icon=tableplus", base: :home, audit_result: false
+    end
+    unless_path_exists "tableplus.desktop" do
+      write_file ".local/share/applications/tableplus.desktop", <<~EOS, base: :home
         [Desktop Entry]
         Name=TablePlus
         Comment=Modern, native database GUI client
         GenericName=Database GUI
-        Exec=#{HOMEBREW_PREFIX}/bin/tableplus %U
-        Icon=#{icon_target}
+        Exec={{HOMEBREW_PREFIX}}/bin/tableplus %U
+        Icon=tableplus
         Type=Application
         StartupNotify=true
         StartupWMClass=TablePlus
@@ -64,10 +79,9 @@ cask "tableplus-linux" do
     end
   end
 
-  uninstall_postflight do
-    xdg_data = ENV.fetch("XDG_DATA_HOME", "#{Dir.home}/.local/share")
-    FileUtils.rm("#{xdg_data}/applications/tableplus.desktop", force: true)
-    FileUtils.rm("#{xdg_data}/icons/hicolor/256x256/apps/tableplus.png", force: true)
+  uninstall_postflight_steps do
+    remove ".local/share/applications/tableplus.desktop", base: :home
+    remove ".local/share/icons/hicolor/256x256/apps/tableplus.png", base: :home
   end
 
   zap trash: [

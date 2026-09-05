@@ -2,8 +2,7 @@ cask "webex-linux" do
   version "46.8.0.35631"
   sha256 :no_check
 
-  url "https://binaries.webex.com/WebexDesktop-CentOS-Official-Package/Webex.rpm",
-      verified: "binaries.webex.com/WebexDesktop-CentOS-Official-Package/"
+  url "https://binaries.webex.com/WebexDesktop-CentOS-Official-Package/Webex.rpm"
   name "Webex"
   desc "Calling, messaging, and meeting app by Cisco"
   homepage "https://www.webex.com/downloads.html"
@@ -23,43 +22,52 @@ cask "webex-linux" do
 
   binary "opt/Webex/bin/CiscoCollabHost", target: "webex"
   artifact "opt/Webex/bin/sparklogosmall.png",
-           target: "#{Dir.home}/.local/share/pixmaps/webex.png"
+           target: "#{Dir.home}/.local/share/icons/webex.png"
   artifact "opt/Webex/bin/webex.desktop",
            target: "#{Dir.home}/.local/share/applications/webex.desktop"
 
-  preflight do
-    rpm_path = staged_path/"Webex.rpm"
-    rpm2cpio = Formula["rpm2cpio"].bin/"rpm2cpio"
-    cpio = Formula["cpio"].bin/"cpio"
-    system "sh", "-c", "'#{rpm2cpio}' '#{rpm_path}' | '#{cpio}' -idm --quiet", chdir: staged_path
-    FileUtils.rm rpm_path
+  preflight_steps do
+    run "{{HOMEBREW_PREFIX}}/bin/rpm2cpio", args:        ["{{staged_path}}/Webex.rpm"],
+                                            stdout_path: "webex.cpio"
+    run "{{HOMEBREW_PREFIX}}/bin/cpio", args: ["-idm", "--quiet"], stdin_path: "webex.cpio",
+        chdir: "{{staged_path}}"
+    remove "Webex.rpm"
+    remove "webex.cpio"
 
-    FileUtils.touch staged_path/"opt/Webex/bin/rpm.dat"
+    touch "opt/Webex/bin/rpm.dat"
+    remove "opt/Webex/lib/libstdc++.so.6"
 
-    FileUtils.rm staged_path/"opt/Webex/lib/libstdc++.so.6", force: true
-
-    desktop_file = staged_path/"opt/Webex/bin/webex.desktop"
-    content = File.read(desktop_file)
-    content.gsub!(/^Exec=.*/, "Exec=#{HOMEBREW_PREFIX}/bin/webex %U")
-    content.gsub!(/^Icon=.*/, "Icon=#{Dir.home}/.local/share/pixmaps/webex.png")
-    File.write(desktop_file, content)
+    inreplace "opt/Webex/bin/webex.desktop", /^Exec=.*/,
+              "Exec={{HOMEBREW_PREFIX}}/bin/webex %U", audit_result: false
+    inreplace "opt/Webex/bin/webex.desktop", /^Icon=.*/, "Icon=webex", audit_result: false
   end
 
-  postflight do
-    system "xdg-mime", "default", "webex.desktop",
-           "x-scheme-handler/webexteams",
-           "x-scheme-handler/ciscospark",
-           "x-scheme-handler/webex"
+  postflight_steps do
+    # Give xdg-mime a stable HOME whose .config directory is a narrow handle
+    # onto the real user's configuration directory.
+    mkdir_p ".config", base: :home
+    mkdir_p "webex-home"
+    symlink ".config", "webex-home/.config", source_base: :home
+    run "xdg-mime",
+        args: ["default", "webex.desktop", "x-scheme-handler/webexteams",
+               "x-scheme-handler/ciscospark", "x-scheme-handler/webex"],
+        env: {
+          "HOME"            => "{{staged_path}}/webex-home",
+          "XDG_CONFIG_HOME" => "{{staged_path}}/webex-home/.config",
+        },
+        must_succeed: false, writable_paths: [".config"], writable_base: :home
 
-    webex_wrapper = HOMEBREW_PREFIX/"bin/webex"
-    if webex_wrapper.exist?
-      libxcrypt_lib = Formula["libxcrypt-compat"].lib
-      content = File.read(webex_wrapper)
-      unless content.include?(libxcrypt_lib.to_s)
-        content.gsub!(/^exec /, "export LD_LIBRARY_PATH=\"#{libxcrypt_lib}:$LD_LIBRARY_PATH\"\nexec ")
-        File.write(webex_wrapper, content)
-      end
-    end
+    # The binary artifact created `{{HOMEBREW_PREFIX}}/bin/webex` as a symlink to
+    # the staged CiscoCollabHost, so modifying the staged file is equivalent. Keep
+    # the idempotent marker guard exactly as the original (insert only when absent).
+    run "sh",
+        args: ["-c", <<~SH]
+          wrapper="{{staged_path}}/opt/Webex/bin/CiscoCollabHost"
+          marker="{{HOMEBREW_PREFIX}}/opt/libxcrypt-compat/lib"
+          if [ -f "$wrapper" ] && ! grep -qF "$marker" "$wrapper"; then
+            sed -i 's#^exec #export LD_LIBRARY_PATH="'"$marker"':$LD_LIBRARY_PATH"\\nexec #' "$wrapper"
+          fi
+        SH
   end
 
   zap trash: [

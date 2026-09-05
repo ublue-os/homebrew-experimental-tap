@@ -31,6 +31,12 @@ brew "<formula>"
 - **Subject to change** - Packages can be modified, moved, or deleted at any time
 - **Not for production** - Do not use for critical workflows
 
+## Linux desktop compatibility
+
+Migrated Linux desktop and icon integrations use `~/.local/share` rather than a custom `XDG_DATA_HOME`.
+Docker context setup uses `~/.docker`, and Webex MIME registration uses `~/.config`, rather than custom
+`DOCKER_CONFIG` or `XDG_CONFIG_HOME` values.
+
 ## Documentation
 
 `brew help`, `man brew` or check [Homebrew's documentation](https://docs.brew.sh).

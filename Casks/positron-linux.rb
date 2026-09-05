@@ -5,8 +5,7 @@ cask "positron-linux" do
   sha256 arm64_linux:  "10765960b1aaba292685660f8efefe2387f56644afc88f50ea74495ef806064d",
          x86_64_linux: "0e694502bdb876b7eea962b6dae3d77c7bcf22ebd0aedab7625e61520718dcea"
 
-  url "https://cdn.posit.co/positron/releases/deb/#{(arch == "arm64") ? "arm64" : "x86_64"}/Positron-#{version}-#{arch}.deb",
-      verified: "cdn.posit.co/positron/"
+  url "https://cdn.posit.co/positron/releases/deb/#{(arch == "arm64") ? "arm64" : "x86_64"}/Positron-#{version}-#{arch}.deb"
   name "Positron"
   desc "Next-generation data science IDE for R and Python"
   homepage "https://positron.posit.co/"
@@ -24,38 +23,39 @@ cask "positron-linux" do
 
   binary "usr/bin/positron", target: "positron"
 
-  preflight do
-    xdg_data = ENV.fetch("XDG_DATA_HOME", "#{Dir.home}/.local/share")
-    FileUtils.mkdir_p "#{xdg_data}/applications"
-    FileUtils.mkdir_p "#{xdg_data}/icons/hicolor/256x256/apps"
-
-    # Extract the deb package
-    deb_file = "#{staged_path}/Positron-#{version}-#{arch}.deb"
-    system "dpkg", "-x", deb_file, staged_path
-    FileUtils.rm(deb_file, force: true)
+  preflight_steps do
+    # Normalise the arch- and version-specific deb filename, then extract.
+    move "Positron-{{version}}-*.deb", "positron.deb", source_glob: true
+    run "{{HOMEBREW_PREFIX}}/opt/dpkg/bin/dpkg-deb",
+        args: ["-x", "{{staged_path}}/positron.deb", "{{staged_path}}"]
+    remove "positron.deb"
   end
 
-  postflight do
-    xdg_data = ENV.fetch("XDG_DATA_HOME", "#{Dir.home}/.local/share")
+  postflight_steps do
+    mkdir_p ".local/share/applications", base: :home
+    mkdir_p ".local/share/icons/hicolor/256x256/apps", base: :home
 
-    icon_source = "#{staged_path}/usr/share/icons/hicolor/256x256/apps/positron.png"
-    icon_target = "#{xdg_data}/icons/hicolor/256x256/apps/positron.png"
-    FileUtils.cp(icon_source, icon_target) if File.exist?(icon_source)
+    if_path_exists "usr/share/icons/hicolor/256x256/apps/positron.png" do
+      copy "usr/share/icons/hicolor/256x256/apps/positron.png",
+           ".local/share/icons/hicolor/256x256/apps/positron.png", target_base: :home
+    end
 
-    desktop_source = "#{staged_path}/usr/share/applications/positron.desktop"
-    if File.exist?(desktop_source)
-      desktop_content = File.read(desktop_source)
-      desktop_content.gsub!(/^Exec=.*/, "Exec=#{HOMEBREW_PREFIX}/bin/positron %F")
-      desktop_content.gsub!(/^Icon=.*/, "Icon=#{icon_target}")
-      File.write("#{xdg_data}/applications/positron.desktop", desktop_content)
-    else
-      File.write("#{xdg_data}/applications/positron.desktop", <<~EOS)
+    if_path_exists "usr/share/applications/positron.desktop" do
+      copy "usr/share/applications/positron.desktop", ".local/share/applications/positron.desktop",
+           target_base: :home
+      inreplace ".local/share/applications/positron.desktop", /^Exec=.*/,
+                "Exec={{HOMEBREW_PREFIX}}/bin/positron %F", base: :home, audit_result: false
+      inreplace ".local/share/applications/positron.desktop", /^Icon=.*/,
+                "Icon=positron", base: :home, audit_result: false
+    end
+    unless_path_exists "usr/share/applications/positron.desktop" do
+      write_file ".local/share/applications/positron.desktop", <<~EOS, base: :home
         [Desktop Entry]
         Name=Positron
         Comment=Next-generation data science IDE for R and Python
         GenericName=Data Science IDE
-        Exec=#{HOMEBREW_PREFIX}/bin/positron %F
-        Icon=#{icon_target}
+        Exec={{HOMEBREW_PREFIX}}/bin/positron %F
+        Icon=positron
         Type=Application
         StartupNotify=true
         StartupWMClass=Positron
@@ -66,10 +66,9 @@ cask "positron-linux" do
     end
   end
 
-  uninstall_postflight do
-    xdg_data = ENV.fetch("XDG_DATA_HOME", "#{Dir.home}/.local/share")
-    FileUtils.rm("#{xdg_data}/applications/positron.desktop", force: true)
-    FileUtils.rm("#{xdg_data}/icons/hicolor/256x256/apps/positron.png", force: true)
+  uninstall_postflight_steps do
+    remove ".local/share/applications/positron.desktop", base: :home
+    remove ".local/share/icons/hicolor/256x256/apps/positron.png", base: :home
   end
 
   zap trash: [

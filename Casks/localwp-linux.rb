@@ -30,31 +30,30 @@ cask "localwp-linux" do
 
   binary "opt/Local/local", target: "localwp"
 
-  preflight do
-    xdg_data = ENV.fetch("XDG_DATA_HOME", "#{Dir.home}/.local/share")
-    FileUtils.mkdir_p "#{xdg_data}/applications"
-    FileUtils.mkdir_p "#{xdg_data}/icons/hicolor/512x512/apps"
-
-    # Extract the deb package
-    deb_file = "#{staged_path}/local-#{version.csv.first}-linux.deb"
-    system "dpkg", "-x", deb_file, staged_path
-    FileUtils.rm(deb_file, force: true)
+  preflight_steps do
+    # Normalise the versioned deb filename, then extract with dpkg.
+    move "local-*-linux.deb", "local.deb", source_glob: true
+    run "{{HOMEBREW_PREFIX}}/opt/dpkg/bin/dpkg-deb",
+        args: ["-x", "{{staged_path}}/local.deb", "{{staged_path}}"]
+    remove "local.deb"
   end
 
-  postflight do
-    xdg_data = ENV.fetch("XDG_DATA_HOME", "#{Dir.home}/.local/share")
+  postflight_steps do
+    mkdir_p ".local/share/applications", base: :home
+    mkdir_p ".local/share/icons/hicolor/512x512/apps", base: :home
 
-    icon_source = "#{staged_path}/usr/share/icons/hicolor/512x512/apps/local.png"
-    icon_target = "#{xdg_data}/icons/hicolor/512x512/apps/localwp.png"
-    FileUtils.cp(icon_source, icon_target) if File.exist?(icon_source)
+    if_path_exists "usr/share/icons/hicolor/512x512/apps/local.png" do
+      copy "usr/share/icons/hicolor/512x512/apps/local.png",
+           ".local/share/icons/hicolor/512x512/apps/localwp.png", target_base: :home
+    end
 
-    File.write("#{xdg_data}/applications/localwp.desktop", <<~EOS)
+    write_file ".local/share/applications/localwp.desktop", <<~EOS, base: :home
       [Desktop Entry]
       Name=LocalWP
       Comment=Local WordPress development environment
       GenericName=WordPress Development Tool
-      Exec=#{HOMEBREW_PREFIX}/bin/localwp %U
-      Icon=#{icon_target}
+      Exec={{HOMEBREW_PREFIX}}/bin/localwp %U
+      Icon=localwp
       Type=Application
       StartupNotify=true
       StartupWMClass=Local
@@ -64,10 +63,9 @@ cask "localwp-linux" do
     EOS
   end
 
-  uninstall_postflight do
-    xdg_data = ENV.fetch("XDG_DATA_HOME", "#{Dir.home}/.local/share")
-    FileUtils.rm("#{xdg_data}/applications/localwp.desktop", force: true)
-    FileUtils.rm("#{xdg_data}/icons/hicolor/512x512/apps/localwp.png", force: true)
+  uninstall_postflight_steps do
+    remove ".local/share/applications/localwp.desktop", base: :home
+    remove ".local/share/icons/hicolor/512x512/apps/localwp.png", base: :home
   end
 
   zap trash: [

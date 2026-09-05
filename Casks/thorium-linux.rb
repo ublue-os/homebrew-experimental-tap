@@ -3,8 +3,7 @@ cask "thorium-linux" do
   sha256 "b17cd482a67d968a6b04239b1d72d18e45b5e44cc514c05baaaab1b90f992230"
 
   # Uses the AVX2 build (recommended for modern CPUs manufactured after ~2013)
-  url "https://github.com/Alex313031/thorium/releases/download/M#{version}/Thorium_Browser_#{version}_AVX2.AppImage",
-      verified: "github.com/Alex313031/thorium/"
+  url "https://github.com/Alex313031/thorium/releases/download/M#{version}/Thorium_Browser_#{version}_AVX2.AppImage"
   name "Thorium Browser"
   desc "Fast, privacy-hardened Chromium browser with compiler optimizations"
   homepage "https://thorium.rocks/"
@@ -24,36 +23,40 @@ cask "thorium-linux" do
 
   binary "squashfs-root/thorium-browser", target: "thorium-browser"
 
-  preflight do
-    appimage_path = "#{staged_path}/Thorium_Browser_#{version}_AVX2.AppImage"
-    system "chmod", "+x", appimage_path
-    system appimage_path, "--appimage-extract", chdir: staged_path
-    FileUtils.rm appimage_path
+  preflight_steps do
+    # Normalise the versioned AppImage filename before extraction.
+    move "Thorium_Browser_*.AppImage", "thorium-browser.AppImage", source_glob: true
+    set_permissions "thorium-browser.AppImage", "+x"
+    run "thorium-browser.AppImage", args: ["--appimage-extract"], base: :staged_path,
+        chdir: "{{staged_path}}"
+    remove "thorium-browser.AppImage"
   end
 
-  postflight do
-    xdg_data = ENV.fetch("XDG_DATA_HOME", "#{Dir.home}/.local/share")
-    FileUtils.mkdir_p "#{xdg_data}/applications"
-    FileUtils.mkdir_p "#{xdg_data}/icons/hicolor/256x256/apps"
+  postflight_steps do
+    mkdir_p ".local/share/applications", base: :home
+    mkdir_p ".local/share/icons/hicolor/256x256/apps", base: :home
 
-    icon_source = "#{staged_path}/squashfs-root/product_logo_256.png"
-    icon_target = "#{xdg_data}/icons/hicolor/256x256/apps/thorium-browser.png"
-    FileUtils.cp(icon_source, icon_target) if File.exist?(icon_source)
+    if_path_exists "squashfs-root/product_logo_256.png" do
+      copy "squashfs-root/product_logo_256.png",
+           ".local/share/icons/hicolor/256x256/apps/thorium-browser.png", target_base: :home
+    end
 
-    desktop_source = "#{staged_path}/squashfs-root/thorium-browser.desktop"
-    if File.exist?(desktop_source)
-      desktop_content = File.read(desktop_source)
-      desktop_content.gsub!(/^Exec=thorium-browser/, "Exec=#{HOMEBREW_PREFIX}/bin/thorium-browser")
-      desktop_content.gsub!(/^Icon=.*/, "Icon=#{icon_target}")
-      File.write("#{xdg_data}/applications/thorium-browser.desktop", desktop_content)
-    else
-      File.write("#{xdg_data}/applications/thorium-browser.desktop", <<~EOS)
+    if_path_exists "squashfs-root/thorium-browser.desktop" do
+      copy "squashfs-root/thorium-browser.desktop", ".local/share/applications/thorium-browser.desktop",
+           target_base: :home
+      inreplace ".local/share/applications/thorium-browser.desktop", /^Exec=thorium-browser/,
+                "Exec={{HOMEBREW_PREFIX}}/bin/thorium-browser", base: :home, audit_result: false
+      inreplace ".local/share/applications/thorium-browser.desktop", /^Icon=.*/,
+                "Icon=thorium-browser", base: :home, audit_result: false
+    end
+    unless_path_exists "squashfs-root/thorium-browser.desktop" do
+      write_file ".local/share/applications/thorium-browser.desktop", <<~EOS, base: :home
         [Desktop Entry]
         Name=Thorium Browser
         Comment=Fast, privacy-hardened Chromium browser
         GenericName=Web Browser
-        Exec=#{HOMEBREW_PREFIX}/bin/thorium-browser %U
-        Icon=#{icon_target}
+        Exec={{HOMEBREW_PREFIX}}/bin/thorium-browser %U
+        Icon=thorium-browser
         Type=Application
         StartupNotify=true
         StartupWMClass=thorium-browser
@@ -64,10 +67,9 @@ cask "thorium-linux" do
     end
   end
 
-  uninstall_postflight do
-    xdg_data = ENV.fetch("XDG_DATA_HOME", "#{Dir.home}/.local/share")
-    FileUtils.rm("#{xdg_data}/applications/thorium-browser.desktop", force: true)
-    FileUtils.rm("#{xdg_data}/icons/hicolor/256x256/apps/thorium-browser.png", force: true)
+  uninstall_postflight_steps do
+    remove ".local/share/applications/thorium-browser.desktop", base: :home
+    remove ".local/share/icons/hicolor/256x256/apps/thorium-browser.png", base: :home
   end
 
   zap trash: [

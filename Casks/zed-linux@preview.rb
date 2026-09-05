@@ -16,27 +16,27 @@ cask "zed-linux@preview" do
 
   binary "zed-preview.app/bin/zed", target: "zed-preview"
 
-  preflight do
-    xdg_data = ENV.fetch("XDG_DATA_HOME", "#{Dir.home}/.local/share")
-    FileUtils.mkdir_p "#{xdg_data}/applications"
-    FileUtils.mkdir_p "#{xdg_data}/icons"
+  preflight_steps do
+    mkdir_p ".local/share/applications", base: :home
+    mkdir_p ".local/share/icons", base: :home
   end
 
-  postflight do
-    xdg_data = ENV.fetch("XDG_DATA_HOME", "#{Dir.home}/.local/share")
-    desktop_content = File.read("#{staged_path}/zed-preview.app/share/applications/dev.zed.Zed-Preview.desktop")
-    desktop_content.gsub!(/^TryExec=.*/, "TryExec=#{HOMEBREW_PREFIX}/bin/zed-preview")
-    desktop_content.gsub!(/^Exec=zed/, "Exec=#{HOMEBREW_PREFIX}/bin/zed-preview")
-    desktop_content.gsub!(/^Icon=.*/, "Icon=zed-preview")
-    File.write("#{xdg_data}/applications/dev.zed.Zed-Preview.desktop", desktop_content)
-    FileUtils.cp("#{staged_path}/zed-preview.app/share/icons/hicolor/512x512/apps/zed.png",
-                 "#{xdg_data}/icons/zed-preview.png")
+  postflight_steps do
+    copy "zed-preview.app/share/applications/dev.zed.Zed-Preview.desktop",
+         ".local/share/applications/dev.zed.Zed-Preview.desktop", target_base: :home
+    inreplace ".local/share/applications/dev.zed.Zed-Preview.desktop", /^TryExec=.*/,
+              "TryExec={{HOMEBREW_PREFIX}}/bin/zed-preview", base: :home, audit_result: false
+    inreplace ".local/share/applications/dev.zed.Zed-Preview.desktop", /^Exec=zed/,
+              "Exec={{HOMEBREW_PREFIX}}/bin/zed-preview", base: :home, audit_result: false
+    inreplace ".local/share/applications/dev.zed.Zed-Preview.desktop", /^Icon=.*/, "Icon=zed-preview",
+              base: :home, audit_result: false
+    copy "zed-preview.app/share/icons/hicolor/512x512/apps/zed.png", ".local/share/icons/zed-preview.png",
+         target_base: :home
   end
 
-  uninstall_postflight do
-    xdg_data = ENV.fetch("XDG_DATA_HOME", "#{Dir.home}/.local/share")
-    FileUtils.rm("#{xdg_data}/applications/dev.zed.Zed-Preview.desktop")
-    FileUtils.rm("#{xdg_data}/icons/zed-preview.png")
+  uninstall_postflight_steps do
+    remove ".local/share/applications/dev.zed.Zed-Preview.desktop", base: :home
+    remove ".local/share/icons/zed-preview.png", base: :home
   end
 
   zap trash: [

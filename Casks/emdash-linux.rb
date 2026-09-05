@@ -20,27 +20,24 @@ cask "emdash-linux" do
   artifact "squashfs-root/emdash.desktop",
            target: "#{Dir.home}/.local/share/applications/emdash.desktop"
 
-  preflight do
-    appimage_path = "#{staged_path}/emdash-x86_64.AppImage"
-    system "chmod", "+x", appimage_path
-    system appimage_path, "--appimage-extract", chdir: staged_path
-    FileUtils.rm(appimage_path)
+  preflight_steps do
+    # Normalise the AppImage filename before extraction.
+    move "emdash-x86_64.AppImage", "emdash.AppImage"
+    set_permissions "emdash.AppImage", "+x"
+    run "emdash.AppImage", args: ["--appimage-extract"], base: :staged_path, chdir: "{{staged_path}}"
+    remove "emdash.AppImage"
   end
 
-  postflight do
-    desktop_target = "#{Dir.home}/.local/share/applications/emdash.desktop"
-    if File.exist?(desktop_target)
-      desktop_content = File.read(desktop_target)
-      desktop_content.gsub!(/^Exec=AppRun/, "Exec=#{HOMEBREW_PREFIX}/bin/emdash")
-      desktop_content.gsub!(/^Icon=.*/,
-                            "Icon=#{Dir.home}/.local/share/icons/hicolor/512x512/apps/emdash.png")
-      File.write(desktop_target, desktop_content)
-    end
+  postflight_steps do
+    inreplace ".local/share/applications/emdash.desktop", /^Exec=AppRun/,
+              "Exec={{HOMEBREW_PREFIX}}/bin/emdash", base: :home, audit_result: false
+    inreplace ".local/share/applications/emdash.desktop", /^Icon=.*/,
+              "Icon=emdash", base: :home, audit_result: false
   end
 
-  uninstall_postflight do
-    FileUtils.rm("#{Dir.home}/.local/share/icons/hicolor/512x512/apps/emdash.png")
-    FileUtils.rm("#{Dir.home}/.local/share/applications/emdash.desktop")
+  uninstall_postflight_steps do
+    remove ".local/share/icons/hicolor/512x512/apps/emdash.png", base: :home
+    remove ".local/share/applications/emdash.desktop", base: :home
   end
 
   zap trash: "~/.config/emdash"

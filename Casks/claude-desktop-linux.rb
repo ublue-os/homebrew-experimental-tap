@@ -28,15 +28,14 @@ cask "claude-desktop-linux" do
   artifact "usr/share/applications/com.anthropic.Claude.desktop",
            target: "#{Dir.home}/.local/share/applications/com.anthropic.Claude.desktop"
 
-  preflight do
-    system "#{formula_opt_bin("dpkg")}/dpkg-deb", "-x",
-           "#{staged_path}/claude-desktop_#{version}_amd64.deb", staged_path
+  preflight_steps do
+    run "{{HOMEBREW_PREFIX}}/opt/dpkg/bin/dpkg-deb",
+        args: ["-x", "{{staged_path}}/claude-desktop_{{version}}_amd64.deb", "{{staged_path}}"]
 
-    desktop_file = "#{staged_path}/usr/share/applications/com.anthropic.Claude.desktop"
-    content = File.read(desktop_file)
-    content.gsub!(/^Exec=.*/, "Exec=#{HOMEBREW_PREFIX}/bin/claude-desktop %U")
-    content.gsub!(/^Icon=.*/, "Icon=#{Dir.home}/.local/share/icons/hicolor/256x256/apps/claude-desktop.png")
-    File.write(desktop_file, content)
+    inreplace "usr/share/applications/com.anthropic.Claude.desktop", /^Exec=.*/,
+              "Exec={{HOMEBREW_PREFIX}}/bin/claude-desktop %U", audit_result: false
+    inreplace "usr/share/applications/com.anthropic.Claude.desktop", /^Icon=.*/,
+              "Icon=claude-desktop", audit_result: false
   end
 
   zap trash: [
