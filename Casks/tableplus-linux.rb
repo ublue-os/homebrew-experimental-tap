@@ -2,8 +2,7 @@ cask "tableplus-linux" do
   version "0.1.308"
   sha256 "b2a880fa2099aea1cf224876e097a3b5f06f20bb59b771cdd9b29fff549cef5e"
 
-  url "https://deb.tableplus.com/debian/22/pool/main/t/tableplus/tableplus_#{version}_amd64.deb",
-      verified: "deb.tableplus.com/"
+  url "https://deb.tableplus.com/debian/22/pool/main/t/tableplus/tableplus_#{version}_amd64.deb"
   name "TablePlus"
   desc "Modern, native database GUI client supporting multiple databases"
   homepage "https://tableplus.com/"

@@ -3,8 +3,7 @@ cask "thorium-linux" do
   sha256 "b17cd482a67d968a6b04239b1d72d18e45b5e44cc514c05baaaab1b90f992230"
 
   # Uses the AVX2 build (recommended for modern CPUs manufactured after ~2013)
-  url "https://github.com/Alex313031/thorium/releases/download/M#{version}/Thorium_Browser_#{version}_AVX2.AppImage",
-      verified: "github.com/Alex313031/thorium/"
+  url "https://github.com/Alex313031/thorium/releases/download/M#{version}/Thorium_Browser_#{version}_AVX2.AppImage"
   name "Thorium Browser"
   desc "Fast, privacy-hardened Chromium browser with compiler optimizations"
   homepage "https://thorium.rocks/"

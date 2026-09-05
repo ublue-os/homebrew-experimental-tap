@@ -2,8 +2,7 @@ cask "gitkraken-linux" do
   version "12.4.0"
   sha256 "7f7e56b5bf345c1da3bcc3ff4f50bf51bf8292399f471e5c5bc2213bfafefb4d"
 
-  url "https://api.gitkraken.dev/releases/production/linux/x64/#{version}/gitkraken-amd64.tar.gz",
-      verified: "api.gitkraken.dev/releases/production/"
+  url "https://api.gitkraken.dev/releases/production/linux/x64/#{version}/gitkraken-amd64.tar.gz"
   name "GitKraken"
   desc "Git client focusing on productivity"
   homepage "https://www.gitkraken.com/"

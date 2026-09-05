@@ -6,8 +6,7 @@ cask "kiro-cli-linux" do
   sha256 arm64_linux:  "09f4ecb046a90e91854dba11f80d465571d9961d456305a597c202f6e1b03a53",
          x86_64_linux: "9f5e37230e7f3becbfe16663569a31dca0698004d8f5d0c575ac92812e0087c6"
 
-  url "https://prod.download.cli.kiro.dev/stable/#{version}/kirocli-#{arch}-linux.zip",
-      verified: "prod.download.cli.kiro.dev/"
+  url "https://prod.download.cli.kiro.dev/stable/#{version}/kirocli-#{arch}-linux.zip"
   name "Kiro CLI"
   desc "Amazon Q Developer CLI - AI-powered command-line assistant"
   homepage "https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/command-line-installing.html"

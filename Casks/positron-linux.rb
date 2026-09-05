@@ -5,8 +5,7 @@ cask "positron-linux" do
   sha256 arm64_linux:  "10765960b1aaba292685660f8efefe2387f56644afc88f50ea74495ef806064d",
          x86_64_linux: "0e694502bdb876b7eea962b6dae3d77c7bcf22ebd0aedab7625e61520718dcea"
 
-  url "https://cdn.posit.co/positron/releases/deb/#{(arch == "arm64") ? "arm64" : "x86_64"}/Positron-#{version}-#{arch}.deb",
-      verified: "cdn.posit.co/positron/"
+  url "https://cdn.posit.co/positron/releases/deb/#{(arch == "arm64") ? "arm64" : "x86_64"}/Positron-#{version}-#{arch}.deb"
   name "Positron"
   desc "Next-generation data science IDE for R and Python"
   homepage "https://positron.posit.co/"
