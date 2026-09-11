@@ -3,9 +3,9 @@ cask "chatgpt-linux" do
   deb_arch = on_arch_conditional arm: "arm64", intel: "amd64"
   os linux: "linux"
 
-  version "26.903.61454"
-  sha256 arm64_linux:  "5c0e3b1d62b8731cab2437ae8eab508b93666d4009e991681f3004263c6b9cd7",
-         x86_64_linux: "42f5a294dfa8e02d10266133978a82cbc6862697aeb609c2a890974f9616ecb2"
+  version "26.903.71938"
+  sha256 arm64_linux:  "b5fe7c639f5d6fe5b92ce03cd26a06ef2a97c53943088684feab5d878cb3a839",
+         x86_64_linux: "25ec6b75b803ab2cecc0243329af49ca2618a783a94561a447cf47cdc64edf1f"
 
   url "https://persistent.oaistatic.com/codex-app-prod/linux/rpm/#{arch}/chatgpt-#{version}-1.#{arch}.rpm"
   name "ChatGPT"
@@ -18,9 +18,9 @@ cask "chatgpt-linux" do
   end
 
   auto_updates true
-  depends_on linux: :any
   depends_on formula: "cpio"
   depends_on formula: "rpm2cpio"
+  depends_on linux: :any
 
   binary "usr/lib/chatgpt/codex-launcher", target: "chatgpt"
   artifact "usr/share/applications/chatgpt.desktop",
