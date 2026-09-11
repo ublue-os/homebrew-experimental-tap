@@ -1,9 +1,9 @@
 cask "opencode-desktop-linux" do
   arch arm: "aarch64", intel: "x86_64"
 
-  version "1.18.29"
-  sha256 arm64_linux:  "728cf211ff1de28b81a912147c008600d539b3174c666b77deeb7c2db4ae6148",
-         x86_64_linux: "98775713346fbc4afcfbd94076557b20af79700ebe7347e7ba838c4f44e61882"
+  version "1.18.30"
+  sha256 arm64_linux:  "7a03b9e1aead386df04a263eadfb4e919aa34adbe824d42d38e2050dc6576c25",
+         x86_64_linux: "59ac88262840bf2ae98826ec9126e91ba02c28389bde54d20998a4f5064d7aa2"
 
   url "https://github.com/anomalyco/opencode/releases/download/v#{version}/opencode-desktop-linux-#{arch}.rpm"
   name "OpenCode"
@@ -17,10 +17,10 @@ cask "opencode-desktop-linux" do
     end
   end
 
-  depends_on linux: :any
+  depends_on formula: "cpio"
   depends_on formula: "gtk+3"
   depends_on formula: "rpm2cpio"
-  depends_on formula: "cpio"
+  depends_on linux: :any
 
   binary "opt/OpenCode/ai.opencode.desktop", target: "opencode-desktop"
   artifact "usr/share/applications/opencode-desktop.desktop",
