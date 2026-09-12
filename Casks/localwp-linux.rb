@@ -25,10 +25,10 @@ cask "localwp-linux" do
   end
 
   auto_updates true
-  depends_on linux: :any
   # Upstream publishes an amd64 deb only; the control file declares Architecture: amd64.
   depends_on arch: :x86_64
   depends_on formula: "dpkg"
+  depends_on linux: :any
 
   binary "opt/Local/local", target: "localwp"
 

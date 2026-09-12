@@ -17,10 +17,10 @@ cask "proton-pass-linux" do
   end
 
   auto_updates true
-  depends_on linux: :any
   depends_on arch: :x86_64
   depends_on formula: "cpio"
   depends_on formula: "rpm2cpio"
+  depends_on linux: :any
 
   binary "usr/lib/proton-pass/Proton Pass", target: "proton-pass"
   artifact "usr/share/applications/proton-pass.desktop",

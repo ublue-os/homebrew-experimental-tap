@@ -14,9 +14,9 @@ cask "tableplus-linux" do
     regex(/tableplus_([0-9.]+)_amd64\.deb/i)
   end
 
-  depends_on linux: :any
   depends_on arch: :x86_64
   depends_on formula: "dpkg"
+  depends_on linux: :any
   # the preflight below extracts the deb itself; without :naked, brew's
   # container sniffing trips over the zstd-compressed members of newer debs
   container type: :naked
