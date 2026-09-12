@@ -9,31 +9,54 @@ class BluefinContributorTools < Formula
     skip "Tracks the development branch; no tagged releases yet"
   end
 
-  depends_on :linux
-  depends_on "apptainer"
+  on_macos do
+    depends_on "node"
+  end
+
+  on_linux do
+    depends_on "apptainer"
+  end
 
   def install
-    bin.install "bin/bluefin"
-    bin.install "bin/bluefin-contribute"
+    if OS.linux?
+      bin.install "bin/bluefin"
+      bin.install "bin/bluefin-contribute"
+      (etc/"apparmor.d").install "image/apparmor/apptainer" => "apptainer" if File.exist?("image/apparmor/apptainer")
+    elsif OS.mac?
+      bin.install "bin/bluefin"
+      bin.install "bin/bluefin-contribute"
+    end
   end
 
   def caveats
-    <<~EOS
-      bluefin and bluefin-contribute require Apptainer to run containerized tools:
-        https://apptainer.org/docs/admin/main/installation.html
+    if OS.linux?
+      <<~EOS
+        bluefin and bluefin-contribute require Apptainer to run containerized tools:
+          https://apptainer.org/docs/admin/main/installation.html
 
-      You will also need the corresponding SIF images or set:
-        export BLUEFIN_REVIEW_SIF=/path/to/bluefin-review.sif
-        export BLUEFIN_CONTRIBUTE_SIF=/path/to/bluefin-contribute.sif
-    EOS
+        On modern Linux (e.g. Ubuntu 24.04+), an AppArmor profile for Apptainer's
+        unprivileged user namespaces may be installed to:
+          #{etc}/apparmor.d/apptainer
+        Load it with:
+          sudo apparmor_parser -r #{etc}/apparmor.d/apptainer
+
+        You will also need the corresponding SIF images or set:
+          export BLUEFIN_REVIEW_SIF=/path/to/bluefin-review.sif
+          export BLUEFIN_CONTRIBUTE_SIF=/path/to/bluefin-contribute.sif
+      EOS
+    else
+      <<~EOS
+        On macOS and Windows (via PowerShell / WSL), Bluefin Review uses the native
+        bundle or container runtime:
+          https://github.com/projectbluefin/review/releases
+      EOS
+    end
   end
 
   test do
-    # bin/bluefin exits with status 2 and prints usage when run without subcommands
     output = shell_output("#{bin}/bluefin 2>&1", 2)
     assert_match "Usage: bluefin {contribute|review}", output
 
-    # Validate that installed scripts are valid bash
     system "bash", "-n", bin/"bluefin"
     system "bash", "-n", bin/"bluefin-contribute"
   end
