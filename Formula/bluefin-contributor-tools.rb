@@ -10,6 +10,7 @@ class BluefinContributorTools < Formula
   end
 
   depends_on :linux
+  depends_on "apptainer"
 
   def install
     bin.install "bin/bluefin"
