@@ -1,42 +1,39 @@
 class BluefinContributorTools < Formula
-  desc "Bluefin Review & Contribute CLI tools powered by Apptainer"
+  desc "Contributor and review tooling for Project Bluefin"
   homepage "https://github.com/projectbluefin/review"
-  url "https://github.com/projectbluefin/review/archive/refs/heads/main.tar.gz"
+  url "https://github.com/projectbluefin/review.git", branch: "omp-port"
   version "0.1.0"
   license "Apache-2.0"
-  head "https://github.com/projectbluefin/review.git", branch: "main"
 
   livecheck do
-    url :stable
-    strategy :github_latest
+    skip "Tracks the development branch; no tagged releases yet"
   end
 
-  depends_on "apptainer"
+  depends_on :linux
 
   def install
-    # Install the CLI wrappers
     bin.install "bin/bluefin"
     bin.install "bin/bluefin-contribute"
-
-    # Install companion scripts/assets if present
-    pkgshare.install "Justfile" if File.exist?("Justfile")
-    pkgshare.install "justfile" if File.exist?("justfile")
   end
 
   def caveats
     <<~EOS
-      Bluefin Contributor Tools runs containerized under Apptainer.
+      bluefin and bluefin-contribute require Apptainer to run containerized tools:
+        https://apptainer.org/docs/admin/main/installation.html
 
-      To start the Hive contributor worker:
-        bluefin contribute
-        # or: bluefin-contribute
-
-      To review pull requests:
-        bluefin review
+      You will also need the corresponding SIF images or set:
+        export BLUEFIN_REVIEW_SIF=/path/to/bluefin-review.sif
+        export BLUEFIN_CONTRIBUTE_SIF=/path/to/bluefin-contribute.sif
     EOS
   end
 
   test do
-    assert_match "Usage:", shell_output("#{bin}/bluefin 2>&1", 2)
+    # bin/bluefin exits with status 2 and prints usage when run without subcommands
+    output = shell_output("#{bin}/bluefin 2>&1", 2)
+    assert_match "Usage: bluefin {contribute|review}", output
+
+    # Validate that installed scripts are valid bash
+    system "bash", "-n", bin/"bluefin"
+    system "bash", "-n", bin/"bluefin-contribute"
   end
 end
