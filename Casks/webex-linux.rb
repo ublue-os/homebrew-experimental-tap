@@ -1,4 +1,6 @@
 cask "webex-linux" do
+  os linux: "linux"
+
   version "46.8.0.35631"
   sha256 :no_check
 

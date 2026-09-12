@@ -1,4 +1,6 @@
 cask "localwp-linux" do
+  os linux: "linux"
+
   version "10.1.1,6939"
   sha256 "e5c9c957fc128b4688a485497f7fc33cefa33ab86af81c0ee764c0d708998498"
 

@@ -1,4 +1,6 @@
 cask "proton-pass-linux" do
+  os linux: "linux"
+
   version "1.40.0"
   sha256 "dfa698d4a724c2477248286df925148ce4c0b8f783073ee51d17dea4cab7dd4c"
 

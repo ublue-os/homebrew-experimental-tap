@@ -1,4 +1,6 @@
 cask "tableplus-linux" do
+  os linux: "linux"
+
   version "0.1.308"
   sha256 "b2a880fa2099aea1cf224876e097a3b5f06f20bb59b771cdd9b29fff549cef5e"
 
