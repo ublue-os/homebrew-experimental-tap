@@ -1,4 +1,6 @@
 cask "proton-pass-linux" do
+  os linux: "linux"
+
   version "1.40.0"
   sha256 "dfa698d4a724c2477248286df925148ce4c0b8f783073ee51d17dea4cab7dd4c"
 
@@ -15,10 +17,10 @@ cask "proton-pass-linux" do
   end
 
   auto_updates true
-  depends_on linux: :any
   depends_on arch: :x86_64
   depends_on formula: "cpio"
   depends_on formula: "rpm2cpio"
+  depends_on linux: :any
 
   binary "usr/lib/proton-pass/Proton Pass", target: "proton-pass"
   artifact "usr/share/applications/proton-pass.desktop",

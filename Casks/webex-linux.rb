@@ -1,4 +1,6 @@
 cask "webex-linux" do
+  os linux: "linux"
+
   version "46.8.0.35631"
   sha256 :no_check
 
@@ -15,10 +17,10 @@ cask "webex-linux" do
   end
 
   auto_updates true
-  depends_on linux: :any
   depends_on formula: "cpio"
-  depends_on formula: "rpm2cpio"
   depends_on formula: "libxcrypt-compat"
+  depends_on formula: "rpm2cpio"
+  depends_on linux: :any
 
   binary "opt/Webex/bin/CiscoCollabHost", target: "webex"
   artifact "opt/Webex/bin/sparklogosmall.png",
