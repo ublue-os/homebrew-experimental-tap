@@ -2,7 +2,7 @@ class BluefinContributorTools < Formula
   desc "Contributor and review tooling for Project Bluefin"
   homepage "https://github.com/projectbluefin/review"
   url "https://github.com/projectbluefin/review.git", branch: "omp-port"
-  version "0.1.0"
+  version "0.2.1"
   license "Apache-2.0"
 
   livecheck do
