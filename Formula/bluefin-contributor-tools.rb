@@ -9,6 +9,12 @@ class BluefinContributorTools < Formula
     skip "Tracks the development branch; no tagged releases yet"
   end
 
+  bottle do
+    root_url "https://github.com/ublue-os/homebrew-experimental-tap/releases/download/bluefin-contributor-tools-0.2.1"
+    rebuild 2
+    sha256 cellar: :any_skip_relocation, x86_64_linux: "01ed39ffdfb2d90fb0af4817609e3efde5febcf866f21e5a637cd8539fa12689"
+  end
+
   on_macos do
     depends_on "node"
   end
@@ -21,7 +27,7 @@ class BluefinContributorTools < Formula
     if OS.linux?
       bin.install "bin/bluefin"
       bin.install "bin/bluefin-contribute"
-      (etc/"apparmor.d").install "image/apparmor/apptainer" => "apptainer" if File.exist?("image/apparmor/apptainer")
+      (pkgshare/"apparmor").install "image/apparmor/apptainer" if File.exist?("image/apparmor/apptainer")
     elsif OS.mac?
       bin.install "bin/bluefin"
       bin.install "bin/bluefin-contribute"
@@ -35,10 +41,10 @@ class BluefinContributorTools < Formula
           https://apptainer.org/docs/admin/main/installation.html
 
         On modern Linux (e.g. Ubuntu 24.04+), an AppArmor profile for Apptainer's
-        unprivileged user namespaces may be installed to:
-          #{etc}/apparmor.d/apptainer
+        unprivileged user namespaces is provided at:
+          #{opt_pkgshare}/apparmor/apptainer
         Load it with:
-          sudo apparmor_parser -r #{etc}/apparmor.d/apptainer
+          sudo apparmor_parser -r #{opt_pkgshare}/apparmor/apptainer
 
         You will also need the corresponding SIF images or set:
           export BLUEFIN_REVIEW_SIF=/path/to/bluefin-review.sif
