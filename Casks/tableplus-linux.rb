@@ -1,8 +1,8 @@
 cask "tableplus-linux" do
   os linux: "linux"
 
-  version "0.1.312"
-  sha256 "c1a82b352a0226a817c737f9853556f96267288be1a16fe64f3c7d4a854b5c65"
+  version "0.1.314"
+  sha256 "22d75f1d38d4252d3332c301badb2bfdd9044469330ba4c65e04914d221a5eca"
 
   url "https://deb.tableplus.com/debian/22/pool/main/t/tableplus/tableplus_#{version}_amd64.deb"
   name "TablePlus"
