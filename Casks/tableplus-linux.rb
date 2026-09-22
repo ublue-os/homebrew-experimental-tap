@@ -57,11 +57,11 @@ cask "tableplus-linux" do
     end
 
     if_path_exists "tableplus.desktop" do
+      inreplace "tableplus.desktop", /^Exec=.*/,
+                "Exec={{HOMEBREW_PREFIX}}/bin/tableplus %U", audit_result: false
+      inreplace "tableplus.desktop", /^Icon=.*/,
+                "Icon=tableplus", audit_result: false
       copy "tableplus.desktop", ".local/share/applications/tableplus.desktop", target_base: :home
-      inreplace ".local/share/applications/tableplus.desktop", /^Exec=.*/,
-                "Exec={{HOMEBREW_PREFIX}}/bin/tableplus %U", base: :home, audit_result: false
-      inreplace ".local/share/applications/tableplus.desktop", /^Icon=.*/,
-                "Icon=tableplus", base: :home, audit_result: false
     end
     unless_path_exists "tableplus.desktop" do
       write_file ".local/share/applications/tableplus.desktop", <<~EOS, base: :home

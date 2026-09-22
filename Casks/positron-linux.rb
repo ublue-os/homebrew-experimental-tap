@@ -18,8 +18,8 @@ cask "positron-linux" do
     end
   end
 
-  depends_on linux: :any
   depends_on formula: "dpkg"
+  depends_on linux: :any
 
   binary "usr/bin/positron", target: "positron"
 
@@ -41,12 +41,12 @@ cask "positron-linux" do
     end
 
     if_path_exists "usr/share/applications/positron.desktop" do
+      inreplace "usr/share/applications/positron.desktop", /^Exec=.*/,
+                "Exec={{HOMEBREW_PREFIX}}/bin/positron %F", audit_result: false
+      inreplace "usr/share/applications/positron.desktop", /^Icon=.*/,
+                "Icon=positron", audit_result: false
       copy "usr/share/applications/positron.desktop", ".local/share/applications/positron.desktop",
            target_base: :home
-      inreplace ".local/share/applications/positron.desktop", /^Exec=.*/,
-                "Exec={{HOMEBREW_PREFIX}}/bin/positron %F", base: :home, audit_result: false
-      inreplace ".local/share/applications/positron.desktop", /^Icon=.*/,
-                "Icon=positron", base: :home, audit_result: false
     end
     unless_path_exists "usr/share/applications/positron.desktop" do
       write_file ".local/share/applications/positron.desktop", <<~EOS, base: :home

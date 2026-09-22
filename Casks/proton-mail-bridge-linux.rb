@@ -50,12 +50,12 @@ cask "proton-mail-bridge-linux" do
     end
 
     if_path_exists "proton-mail-bridge.desktop" do
+      inreplace "proton-mail-bridge.desktop", /^Exec=.*/,
+                "Exec={{HOMEBREW_PREFIX}}/bin/proton-mail-bridge %U", audit_result: false
+      inreplace "proton-mail-bridge.desktop", /^Icon=.*/,
+                "Icon=proton-mail-bridge", audit_result: false
       copy "proton-mail-bridge.desktop", ".local/share/applications/proton-mail-bridge.desktop",
            target_base: :home
-      inreplace ".local/share/applications/proton-mail-bridge.desktop", /^Exec=.*/,
-                "Exec={{HOMEBREW_PREFIX}}/bin/proton-mail-bridge %U", base: :home, audit_result: false
-      inreplace ".local/share/applications/proton-mail-bridge.desktop", /^Icon=.*/,
-                "Icon=proton-mail-bridge", base: :home, audit_result: false
     end
     unless_path_exists "proton-mail-bridge.desktop" do
       write_file ".local/share/applications/proton-mail-bridge.desktop", <<~EOS, base: :home

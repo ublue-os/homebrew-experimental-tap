@@ -31,7 +31,7 @@ cask "webex-linux" do
   preflight_steps do
     run "{{HOMEBREW_PREFIX}}/bin/rpm2cpio", args:        ["{{staged_path}}/Webex.rpm"],
                                             stdout_path: "webex.cpio"
-    run "{{HOMEBREW_PREFIX}}/bin/cpio", args: ["-idm", "--quiet"], stdin_path: "webex.cpio",
+    run "{{HOMEBREW_PREFIX}}/bin/cpio", args: ["-idmu", "--quiet"], stdin_path: "webex.cpio",
         chdir: "{{staged_path}}"
     remove "Webex.rpm"
     remove "webex.cpio"

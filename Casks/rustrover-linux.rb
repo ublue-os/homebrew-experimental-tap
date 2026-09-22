@@ -36,6 +36,7 @@ cask "rustrover-linux" do
 
   preflight_steps do
     # Normalise the versioned directory before referring to it in declarative steps.
+    remove "rustrover", recursive: true
     move "RustRover-*", "rustrover", source_glob: true
     touch "rustrover/bin/rustrover64.vmoptions"
     inreplace "rustrover/bin/rustrover64.vmoptions", /\z/, "-Dide.no.platform.update=true\n"

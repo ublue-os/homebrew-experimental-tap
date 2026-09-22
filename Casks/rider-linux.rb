@@ -36,6 +36,7 @@ cask "rider-linux" do
 
   preflight_steps do
     # Normalise the versioned directory before referring to it in declarative steps.
+    remove "rider", recursive: true
     move "JetBrains Rider-*", "rider", source_glob: true
     touch "rider/bin/rider64.vmoptions"
     inreplace "rider/bin/rider64.vmoptions", /\z/, "-Dide.no.platform.update=true\n"

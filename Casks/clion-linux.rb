@@ -36,6 +36,7 @@ cask "clion-linux" do
 
   preflight_steps do
     # Normalise the versioned directory before referring to it in declarative steps.
+    remove "clion", recursive: true
     move "clion-*", "clion", source_glob: true
     touch "clion/bin/clion64.vmoptions"
     inreplace "clion/bin/clion64.vmoptions", /\z/, "-Dide.no.platform.update=true\n"

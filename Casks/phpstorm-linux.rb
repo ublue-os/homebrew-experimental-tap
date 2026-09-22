@@ -36,6 +36,7 @@ cask "phpstorm-linux" do
 
   preflight_steps do
     # Normalise the versioned directory before referring to it in declarative steps.
+    remove "phpstorm", recursive: true
     move "PhpStorm-*", "phpstorm", source_glob: true
     touch "phpstorm/bin/phpstorm64.vmoptions"
     inreplace "phpstorm/bin/phpstorm64.vmoptions", /\z/, "-Dide.no.platform.update=true\n"

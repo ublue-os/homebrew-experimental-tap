@@ -29,6 +29,7 @@ cask "claude-desktop-linux" do
            target: "#{Dir.home}/.local/share/applications/com.anthropic.Claude.desktop"
 
   preflight_steps do
+    remove "usr/share/applications/com.anthropic.Claude.desktop", recursive: true
     run "{{HOMEBREW_PREFIX}}/opt/dpkg/bin/dpkg-deb",
         args: ["-x", "{{staged_path}}/claude-desktop_{{version}}_amd64.deb", "{{staged_path}}"]
 
