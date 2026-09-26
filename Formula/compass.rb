@@ -13,27 +13,41 @@ class Compass < Formula
     strategy :github_latest
   end
 
-  depends_on :linux
-
-  depends_on "rust" => :build
   depends_on "pkg-config" => :build
-  depends_on "node" => :build
-  depends_on "openssl@3"
+  depends_on "rust" => :build
   depends_on "libxkbcommon"
+  depends_on "node"
+  depends_on "openssl@3"
+  depends_on :linux
 
   def install
     # The extension runtime bundle the engine refuses to run without.
     system "./scripts/build-extension-runtime.sh"
-    # The same binary set every other package builds (see
-    # scripts/packaging/install-rust-engine.sh).
-    system "cargo", "build", "--release", "--locked",
+    # Every binary the repo's packages ship. `cargo install` (rather than
+    # `cargo build` plus the install script) is what `brew audit` requires;
+    # the layout below mirrors scripts/packaging/install-rust-engine.sh,
+    # which stays the canonical list of what an install contains.
+    system "cargo", "install", "--locked",
            "-p", "compass",
            "-p", "compass-sandbox",
            "-p", "compass-input-server",
-           "--bins"
-    ENV["PREFIX"] = prefix
-    ENV["REQUIRE_RUNTIME"] = "1"
-    system "./scripts/packaging/install-rust-engine.sh"
+           "--bins", *std_cargo_args
+    # cargo install puts every binary on PATH, but the engine finds its
+    # helpers in ../libexec/compass from bin/ — so they move there.
+    (libexec/"compass").mkpath
+    %w[compass-file-indexer compass-sandbox-exec compass-input-server].each do |helper|
+      mv bin/helper, libexec/"compass"
+    end
+    (share/"applications").install "packaging/flatpak/org.tunaos.compass.desktop"
+    (share/"metainfo").install "packaging/flatpak/org.tunaos.compass.metainfo.xml"
+    (share/"icons/hicolor/scalable/apps").install "extra/compass.svg" => "org.tunaos.compass.svg"
+    (share/"compass/builtin-icons").install Dir["extra/builtin-icons/*.svg"]
+    (share/"compass").install "packaging/schema/compass.schema.json"
+    (share/"compass").install "src/typescript/extension-manager/dist/runtime.js" => "extension-runtime.js"
+    Dir["extensions/rhai-examples/*/"].each do |dir|
+      (share/"compass/scripts/#{File.basename(dir)}").install Dir["#{dir}/{script.toml,*.rhai}"]
+    end
+    (lib/"systemd/user").install "packaging/systemd/compass.service"
   end
 
   def caveats
