@@ -15,10 +15,10 @@ class Compass < Formula
 
   depends_on "pkg-config" => :build
   depends_on "rust" => :build
+  depends_on :linux
   depends_on "libxkbcommon"
   depends_on "node"
   depends_on "openssl@3"
-  depends_on :linux
 
   def install
     # The extension runtime bundle the engine refuses to run without.
