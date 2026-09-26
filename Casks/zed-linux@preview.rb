@@ -22,14 +22,14 @@ cask "zed-linux@preview" do
   end
 
   postflight_steps do
+    inreplace "zed-preview.app/share/applications/dev.zed.Zed-Preview.desktop", /^TryExec=.*/,
+              "TryExec={{HOMEBREW_PREFIX}}/bin/zed-preview", audit_result: false
+    inreplace "zed-preview.app/share/applications/dev.zed.Zed-Preview.desktop", /^Exec=zed/,
+              "Exec={{HOMEBREW_PREFIX}}/bin/zed-preview", audit_result: false
+    inreplace "zed-preview.app/share/applications/dev.zed.Zed-Preview.desktop", /^Icon=.*/, "Icon=zed-preview",
+              audit_result: false
     copy "zed-preview.app/share/applications/dev.zed.Zed-Preview.desktop",
          ".local/share/applications/dev.zed.Zed-Preview.desktop", target_base: :home
-    inreplace ".local/share/applications/dev.zed.Zed-Preview.desktop", /^TryExec=.*/,
-              "TryExec={{HOMEBREW_PREFIX}}/bin/zed-preview", base: :home, audit_result: false
-    inreplace ".local/share/applications/dev.zed.Zed-Preview.desktop", /^Exec=zed/,
-              "Exec={{HOMEBREW_PREFIX}}/bin/zed-preview", base: :home, audit_result: false
-    inreplace ".local/share/applications/dev.zed.Zed-Preview.desktop", /^Icon=.*/, "Icon=zed-preview",
-              base: :home, audit_result: false
     copy "zed-preview.app/share/icons/hicolor/512x512/apps/zed.png", ".local/share/icons/zed-preview.png",
          target_base: :home
   end

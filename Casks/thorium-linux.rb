@@ -42,12 +42,12 @@ cask "thorium-linux" do
     end
 
     if_path_exists "squashfs-root/thorium-browser.desktop" do
+      inreplace "squashfs-root/thorium-browser.desktop", /^Exec=thorium-browser/,
+                "Exec={{HOMEBREW_PREFIX}}/bin/thorium-browser", audit_result: false
+      inreplace "squashfs-root/thorium-browser.desktop", /^Icon=.*/,
+                "Icon=thorium-browser", audit_result: false
       copy "squashfs-root/thorium-browser.desktop", ".local/share/applications/thorium-browser.desktop",
            target_base: :home
-      inreplace ".local/share/applications/thorium-browser.desktop", /^Exec=thorium-browser/,
-                "Exec={{HOMEBREW_PREFIX}}/bin/thorium-browser", base: :home, audit_result: false
-      inreplace ".local/share/applications/thorium-browser.desktop", /^Icon=.*/,
-                "Icon=thorium-browser", base: :home, audit_result: false
     end
     unless_path_exists "squashfs-root/thorium-browser.desktop" do
       write_file ".local/share/applications/thorium-browser.desktop", <<~EOS, base: :home

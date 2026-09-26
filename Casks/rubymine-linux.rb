@@ -36,6 +36,7 @@ cask "rubymine-linux" do
 
   preflight_steps do
     # Normalise the versioned directory before referring to it in declarative steps.
+    remove "rubymine", recursive: true
     move "RubyMine-*", "rubymine", source_glob: true
     touch "rubymine/bin/rubymine64.vmoptions"
     inreplace "rubymine/bin/rubymine64.vmoptions", /\z/, "-Dide.no.platform.update=true\n"

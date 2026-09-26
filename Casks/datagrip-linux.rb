@@ -36,6 +36,7 @@ cask "datagrip-linux" do
 
   preflight_steps do
     # Normalise the versioned directory before referring to it in declarative steps.
+    remove "datagrip", recursive: true
     move "DataGrip-*", "datagrip", source_glob: true
     touch "datagrip/bin/datagrip64.vmoptions"
     inreplace "datagrip/bin/datagrip64.vmoptions", /\z/, "-Dide.no.platform.update=true\n"

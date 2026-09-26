@@ -36,6 +36,7 @@ cask "pycharm-linux" do
 
   preflight_steps do
     # Normalise the versioned directory before referring to it in declarative steps.
+    remove "pycharm", recursive: true
     move "pycharm-*", "pycharm", source_glob: true
     touch "pycharm/bin/pycharm64.vmoptions"
     inreplace "pycharm/bin/pycharm64.vmoptions", /\z/, "-Dide.no.platform.update=true\n"

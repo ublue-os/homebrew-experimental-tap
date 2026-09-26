@@ -33,7 +33,7 @@ cask "chatgpt-linux" do
     move "chatgpt-{{version}}-1.*.rpm", "chatgpt.rpm", source_glob: true
     run "{{HOMEBREW_PREFIX}}/bin/rpm2cpio", args:        ["{{staged_path}}/chatgpt.rpm"],
                                             stdout_path: "chatgpt.cpio"
-    run "{{HOMEBREW_PREFIX}}/bin/cpio", args: ["-idm", "--quiet"], stdin_path: "chatgpt.cpio",
+    run "{{HOMEBREW_PREFIX}}/bin/cpio", args: ["-idmu", "--quiet"], stdin_path: "chatgpt.cpio",
         chdir: "{{staged_path}}"
     remove ["chatgpt.rpm", "chatgpt.cpio"]
 

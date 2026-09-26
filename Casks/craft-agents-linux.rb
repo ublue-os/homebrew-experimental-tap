@@ -28,14 +28,14 @@ cask "craft-agents-linux" do
     mkdir_p ".local/share/icons/hicolor/512x512/apps", base: :home
     copy "squashfs-root/usr/share/icons/hicolor/512x512/apps/@craft-agentelectron.png",
          ".local/share/icons/hicolor/512x512/apps/@craft-agentelectron.png", target_base: :home
+    inreplace "squashfs-root/@craft-agentelectron.desktop", /^Exec=AppRun/,
+              "Exec={{HOMEBREW_PREFIX}}/bin/craft-agents", audit_result: false
+    inreplace "squashfs-root/@craft-agentelectron.desktop", /^Icon=.*/,
+              "Icon=@craft-agentelectron", audit_result: false
+    inreplace "squashfs-root/@craft-agentelectron.desktop", /^StartupWMClass=.*/,
+              "StartupWMClass=@craft-agent/electron", audit_result: false
     copy "squashfs-root/@craft-agentelectron.desktop", ".local/share/applications/@craft-agentelectron.desktop",
          target_base: :home
-    inreplace ".local/share/applications/@craft-agentelectron.desktop", /^Exec=AppRun/,
-              "Exec={{HOMEBREW_PREFIX}}/bin/craft-agents", base: :home, audit_result: false
-    inreplace ".local/share/applications/@craft-agentelectron.desktop", /^Icon=.*/,
-              "Icon=@craft-agentelectron", base: :home, audit_result: false
-    inreplace ".local/share/applications/@craft-agentelectron.desktop", /^StartupWMClass=.*/,
-              "StartupWMClass=@craft-agent/electron", base: :home, audit_result: false
   end
 
   uninstall_postflight_steps do
