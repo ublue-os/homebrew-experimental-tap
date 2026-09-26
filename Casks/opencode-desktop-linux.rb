@@ -1,17 +1,22 @@
 cask "opencode-desktop-linux" do
   arch arm: "aarch64", intel: "x86_64"
 
-  version "1.18.32"
-  sha256 arm64_linux:  "f7b70202d8e6a22253640861bf4c06bcefdfac7bc3f3ec338dcd4364a7c1d8c2",
-         x86_64_linux: "f585ec22b63cc5c1a06ec6d8af576e180135ec036eb024c0abe45c14f9904ca7"
+  version "2.0.18"
+  sha256 arm64_linux:  "8930451764075b36a040a8ec41c66469ab8227444fa92385b621b8c62e3980d0",
+         x86_64_linux: "dee4b1cf0bf7f5bec75db402aa8be8323ab12dc9cee0025239f9cff0d957f40a"
 
-  url "https://github.com/anomalyco/opencode/releases/download/v#{version}/opencode-desktop-linux-#{arch}.rpm"
+  # 2.x desktop builds are not on GitHub releases; the anomalyco feed stops at
+  # v1.18.32. Filenames are unchanged, so only the host differs.
+  url "https://opencode.ai/files/bin/#{version}/opencode-desktop-linux-#{arch}.rpm"
   name "OpenCode"
   desc "Open source AI coding agent desktop client"
   homepage "https://opencode.ai/"
 
+  # The updater endpoint the app itself calls, and the only machine-readable
+  # source for 2.x. It returns the newest version whatever version= says, so
+  # take both sha256 values from metadata.files here on a bump.
   livecheck do
-    url "https://github.com/anomalyco/opencode/releases/latest/download/latest.json"
+    url "https://opencode.ai/update/api/latest/desktop/opencode/?arch=x86_64&version=#{version}"
     strategy :json do |json|
       json["version"]
     end
