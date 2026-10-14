@@ -1,9 +1,9 @@
 cask "opencode-desktop-linux" do
   arch arm: "aarch64", intel: "x86_64"
 
-  version "2.0.26"
-  sha256 arm64_linux:  "1f2b5eac201430d18805c40269755c85e2e4e6be15fff7acfb3635397f6a0faf",
-         x86_64_linux: "a5b483bd14ed049d3b5b9ffb1b79da60e4a6bd8577e2b1cae9d0340b37277e40"
+  version "2.0.28"
+  sha256 arm64_linux:  "ead1a4af6207fa057e23ee5c316705f1351e99a992176826565f20f0da887cf3",
+         x86_64_linux: "d6e3ced586bd997543f4e634cf6ed75e8265b6c39087175be1d611581ee5a73e"
 
   # 2.x desktop builds are not on GitHub releases; the anomalyco feed stops at
   # v1.18.32. Filenames are unchanged, so only the host differs.
