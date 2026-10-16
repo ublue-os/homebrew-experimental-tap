@@ -1,8 +1,8 @@
 cask "localwp-linux" do
   os linux: "linux"
 
-  version "10.1.2,7004"
-  sha256 "e4184fa32d585e4bdf302a7dd76fc3413883333de7f84c7ad3383ea2cea3c3b2"
+  version "10.2.0,7022"
+  sha256 "3d78efdcf9d1bd17ed3262f6ada95826bbecd1ec41b6b452411955b5d2afdc9b"
 
   url "https://cdn.localwp.com/releases-stable/#{version.csv.first}+#{version.csv.second}/local-#{version.csv.first}-linux.deb"
   name "LocalWP"
