@@ -16,25 +16,28 @@ cask "windsurf-linux" do
     end
   end
 
-  binary "windsurf/windsurf", target: "windsurf"
+  binary "windsurf/bin/devin-desktop", target: "windsurf"
+  binary "windsurf/bin/devin-desktop", target: "devin"
 
   preflight_steps do
     # Normalise the versioned app directory before referring to it below.
-    move "Devin-linux-x64-*", "windsurf", source_glob: true
+    move "Devin*", "windsurf", source_glob: true
     mkdir_p ".local/share/applications", base: :home
     mkdir_p ".local/share/icons/hicolor/512x512/apps", base: :home
   end
 
   postflight_steps do
-    # Select the largest icon within the app dir, mirroring the original
-    # `Dir.glob(...).min_by { -File.size }` pick.
     run "sh", args: ["-eu", "-c", <<~'SH']
       staged="{{staged_path}}"
-      tab=$(printf '\t')
-      icon_src=$(find "$staged/windsurf" -type f -name '*.png' -printf '%s\t%p\0' 2>/dev/null |
-        LC_ALL=C sort -z -t "$tab" -k1,1nr -k2,2 | head -z -n 1 | cut -z -f2-)
-      if [ -n "$icon_src" ] && [ -f "$icon_src" ]; then
-        cp "$icon_src" "$staged/windsurf.icon.png"
+      if [ -f "$staged/windsurf/resources/app/resources/linux/code.png" ]; then
+        cp "$staged/windsurf/resources/app/resources/linux/code.png" "$staged/windsurf.icon.png"
+      else
+        tab=$(printf '\t')
+        icon_src=$(find "$staged/windsurf" -type f -name '*.png' -printf '%s\t%p\n' 2>/dev/null |
+          LC_ALL=C sort -t "$tab" -k1,1nr -k2,2 | head -n 1 | cut -f2-)
+        if [ -n "$icon_src" ] && [ -f "$icon_src" ]; then
+          cp "$icon_src" "$staged/windsurf.icon.png"
+        fi
       fi
     SH
 
@@ -51,11 +54,11 @@ cask "windsurf-linux" do
       Icon=windsurf
       Type=Application
       StartupNotify=false
-      StartupWMClass=Windsurf
+      StartupWMClass=devin-desktop
       Categories=TextEditor;Development;IDE;
       MimeType=text/plain;inode/directory;application/x-code-workspace;
       Actions=new-empty-window;
-      Keywords=windsurf;code;editor;ai;
+      Keywords=windsurf;devin;code;editor;ai;
 
       [Desktop Action new-empty-window]
       Name=New Empty Window
@@ -70,8 +73,11 @@ cask "windsurf-linux" do
   end
 
   zap trash: [
+    "~/.config/Devin",
     "~/.config/Windsurf",
     "~/.config/windsurf",
+    "~/.devin",
+    "~/.local/share/Devin",
     "~/.local/share/Windsurf",
   ]
 end
