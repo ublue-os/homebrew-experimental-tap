@@ -1,8 +1,8 @@
 cask "windsurf-linux" do
   os linux: "linux"
 
-  version "3.11.216,d70b4713dfeaf856a4d8a35b35eac0c86e07af07"
-  sha256 "f5603eb002a7dd00faf125094540a3945f474b62e49f2ceb68825bb0514df6eb"
+  version "3.11.228,053434014dbdb7a662a14e38752946a0dafb97f2"
+  sha256 "a9baa0f7cfdf0af25494a67546bd004f39baee6194788148a1bbdaf0b1187d5c"
 
   url "https://windsurf-stable.codeiumdata.com/linux-x64/stable/#{version.csv.second}/Devin-linux-x64-#{version.csv.first}.tar.gz"
   name "Windsurf (Devin)"
