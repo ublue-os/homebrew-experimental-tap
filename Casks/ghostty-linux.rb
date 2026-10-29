@@ -1,9 +1,9 @@
 cask "ghostty-linux" do
   arch arm: "aarch64", intel: "x86_64"
 
-  version "1.3.1"
-  sha256 arm64_linux:  "55b7d1e2073b80954e23167a70f9e5994189d81e954d36dad4d2dc2d2fe6c121",
-         x86_64_linux: "fde48d2b716afd1978766879bbf1aae30dd305e8ad86a1037a2614a14d82dc28"
+  version "1.4.0"
+  sha256 arm64_linux:  "932e21c671c215e6140633027acb4e8705cef3377d335202211c32d88b5bf506",
+         x86_64_linux: "50ad4f8b54a01e7d41426e7d12ffae9c88aa1c516ac140755e2bca596e1d2ae6"
 
   url "https://github.com/pkgforge-dev/ghostty-appimage/releases/download/v#{version}/Ghostty-#{version}-#{arch}.AppImage"
   name "Ghostty"
@@ -15,8 +15,8 @@ cask "ghostty-linux" do
     strategy :github_latest
   end
 
-  depends_on linux: :any
   depends_on formula: "squashfs"
+  depends_on linux: :any
 
   binary "ghostty-wrapper", target: "ghostty"
 
