@@ -17,7 +17,6 @@ cask "chatgpt-linux" do
     regex(/^Version:\s*(\d+(?:\.\d+)+)$/i)
   end
 
-  auto_updates true
   depends_on formula: "cpio"
   depends_on formula: "rpm2cpio"
   depends_on linux: :any
