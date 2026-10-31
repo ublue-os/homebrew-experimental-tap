@@ -1,9 +1,9 @@
 cask "jetbrains-gateway-linux" do
   arch arm: "aarch64", intel: "x86_64"
 
-  version "2026.2.2"
-  sha256 arm64_linux:  "657455462da422eafead2cecf37999fe8fa17fcce3339cb4d1788d33776b28cd",
-         x86_64_linux: "e9eff963201dafc9d16d521459d22c2644774f44a25ac460807d752da9d093a8"
+  version "2026.2.4"
+  sha256 arm64_linux:  "b2b19670e6cc212bfa538cb37fffa34f42b809f05a51bda39d7b4f99390c5e1b",
+         x86_64_linux: "d72034ab3bcc2b9d9d0568b6f57f2ac72fc8632d75d74aa6f89995e8a3f36dcf"
 
   url "https://download.jetbrains.com/idea/gateway/JetBrainsGateway-#{version}#{"-aarch64" if arch == "aarch64"}.tar.gz"
   name "JetBrains Gateway"
