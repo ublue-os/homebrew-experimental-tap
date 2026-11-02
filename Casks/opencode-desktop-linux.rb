@@ -27,17 +27,19 @@ cask "opencode-desktop-linux" do
   depends_on formula: "rpm2cpio"
   depends_on linux: :any
 
-  binary "opt/OpenCode/ai.opencode.desktop", target: "opencode-desktop"
+  # 2.2.x RPMs ship ai.opencode and ai.opencode.png. The desktop file's
+  # Icon= key is ai.opencode, so the installed icon must keep that basename.
+  binary "opt/OpenCode/ai.opencode", target: "opencode-desktop"
   artifact "usr/share/applications/opencode-desktop.desktop",
            target: "#{Dir.home}/.local/share/applications/opencode-desktop.desktop"
   artifact "usr/share/applications/ai.opencode.desktop.desktop",
            target: "#{Dir.home}/.local/share/applications/ai.opencode.desktop.desktop"
-  artifact "usr/share/icons/hicolor/32x32/apps/ai.opencode.desktop.png",
-           target: "#{Dir.home}/.local/share/icons/hicolor/32x32/apps/ai.opencode.desktop.png"
-  artifact "usr/share/icons/hicolor/64x64/apps/ai.opencode.desktop.png",
-           target: "#{Dir.home}/.local/share/icons/hicolor/64x64/apps/ai.opencode.desktop.png"
-  artifact "usr/share/icons/hicolor/128x128/apps/ai.opencode.desktop.png",
-           target: "#{Dir.home}/.local/share/icons/hicolor/128x128/apps/ai.opencode.desktop.png"
+  artifact "usr/share/icons/hicolor/32x32/apps/ai.opencode.png",
+           target: "#{Dir.home}/.local/share/icons/hicolor/32x32/apps/ai.opencode.png"
+  artifact "usr/share/icons/hicolor/64x64/apps/ai.opencode.png",
+           target: "#{Dir.home}/.local/share/icons/hicolor/64x64/apps/ai.opencode.png"
+  artifact "usr/share/icons/hicolor/128x128/apps/ai.opencode.png",
+           target: "#{Dir.home}/.local/share/icons/hicolor/128x128/apps/ai.opencode.png"
 
   preflight_steps do
     # Normalise the arch-specific RPM filename, then split extraction.
