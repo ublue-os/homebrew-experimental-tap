@@ -15,7 +15,7 @@ on:
 
 jobs:
   update-formula:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     outputs:
       version: ${{ steps.check.outputs.latest_version }}
       needs-update: ${{ steps.check.outputs.needs_update }}
@@ -146,7 +146,7 @@ jobs:
 
   upload-bottles-to-pr:
     needs: [update-formula, build-bottles]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     if: needs.update-formula.outputs.pr-number != ''
     permissions:
       contents: write
@@ -200,7 +200,7 @@ jobs:
 
   upload-bottles-to-release:
     needs: [update-formula, build-bottles]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     if: needs.update-formula.outputs.pr-number == ''
     permissions:
       contents: write
