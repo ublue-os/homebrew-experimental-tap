@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   discover:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     # `brew bump` routinely fails on one package while opening perfectly good PRs
     # for others, so a failed Homebrew Bump must not stop the good PRs from being
     # promoted. Only a cancelled run is skipped.
