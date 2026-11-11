@@ -2,9 +2,9 @@ cask "kiro-cli-linux" do
   arch arm:   "aarch64",
        intel: "x86_64"
 
-  version "3.1.0"
-  sha256 arm64_linux:  "744701a386299ecc562766c591c54850cfae95775c19c0d6e3f4b5eaf55f87b0",
-         x86_64_linux: "6f43c9ca9811d1ef2d4b47148667243b5af2d4aaea7cdef3e9a6af1c10d4c8ba"
+  version "3.2.0"
+  sha256 arm64_linux:  "2c9d45364b69fc95a6e989352f76eed0c4b542d2ca32c33b5ca5df6c5bdf1f9c",
+         x86_64_linux: "769e4e036d120789ede5a5df4e67237f7b260fe3bd254f269427fe114f89b835"
 
   url "https://prod.download.cli.kiro.dev/stable/#{version}/kirocli-#{arch}-linux.zip"
   name "Kiro CLI"
