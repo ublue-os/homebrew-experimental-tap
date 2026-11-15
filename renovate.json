@@ -3,6 +3,9 @@
   "extends": [
     "local>ublue-os/renovate-config"
   ],
+  "homebrew": {
+    "enabled": false
+  },
   "packageRules": [
     {
       "matchPackageNames": [
