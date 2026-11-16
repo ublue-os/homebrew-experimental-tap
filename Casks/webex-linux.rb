@@ -7,7 +7,7 @@ cask "webex-linux" do
   url "https://binaries.webex.com/WebexDesktop-CentOS-Official-Package/Webex.rpm"
   name "Webex"
   desc "Calling, messaging, and meeting app by Cisco"
-  homepage "https://www.webex.com/downloads.html"
+  homepage "https://help.webex.com/en-us/article/9vstcdb/Webex-App-for-Linux"
 
   livecheck do
     url "https://client-upgrade-a.wbx2.com/client-upgrade/api/v1/webexteamsdesktop/upgrade/@me?channel=gold&model=centos"
