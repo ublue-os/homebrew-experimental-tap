@@ -1,8 +1,8 @@
 cask "proton-pass-linux" do
   os linux: "linux"
 
-  version "1.43.1"
-  sha256 "9599934cc037d8e78807ca40749f0819f046ff276350898bfee299f0c396c8d0"
+  version "1.44.0"
+  sha256 "d921bcd051dbb874d71ea767e26616999cf4f22db6e8337738a9d0def89f49a5"
 
   url "https://proton.me/download/pass/linux/proton-pass-#{version}-1.x86_64.rpm"
   name "Proton Pass"
