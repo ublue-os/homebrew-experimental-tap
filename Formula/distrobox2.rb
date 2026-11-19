@@ -12,6 +12,13 @@ class Distrobox2 < Formula
     regex(/^v?(\d+(?:\.\d+)+(?:-rc\.\d+)?)$/i)
   end
 
+  bottle do
+    root_url "https://github.com/ublue-os/homebrew-experimental-tap/releases/download/distrobox2-2.0.0-rc.3"
+    rebuild 1
+    sha256 cellar: :any_skip_relocation, arm64_linux:  "275e35c2ea762ce4797200c396b23606330447d3eb046884b8b78d2f7fe6b330"
+    sha256 cellar: :any,                 x86_64_linux: "96795b7980eec6c109362d0692932b3ba9e1ce26a41f9ea2a3378b2581092456"
+  end
+
   depends_on "go" => :build
 
   def install
