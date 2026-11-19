@@ -19,7 +19,10 @@ cask "lumo-linux" do
 
   depends_on arch: :x86_64
   depends_on formula: "cpio"
+  depends_on formula: "libayatana-appindicator"
+  depends_on formula: "patchelf"
   depends_on formula: "rpm2cpio"
+  depends_on formula: "webkitgtk"
   depends_on linux: :any
 
   binary "usr/bin/lumo-desktop"
@@ -42,6 +45,12 @@ cask "lumo-linux" do
           "'{{HOMEBREW_PREFIX}}/bin/cpio' -idmu --quiet",
         ]
     remove "Lumo-{{version}}-1.x86_64.rpm"
+    # The binary links libwebkit2gtk-4.1 and libayatana-appindicator3, which
+    # immutable hosts (Bluefin/Aurora) lack. Resolve them, and the GTK/glib
+    # stack they need, from Homebrew. RUNPATH rather than an LD_LIBRARY_PATH
+    # wrapper so processes the app spawns (xdg-open, browsers) keep system libs.
+    run "{{HOMEBREW_PREFIX}}/bin/patchelf",
+        args: ["--set-rpath", "{{HOMEBREW_PREFIX}}/lib", "{{staged_path}}/usr/bin/lumo-desktop"]
     inreplace "usr/share/applications/lumo.desktop",
               /^Exec=.*/, "Exec={{HOMEBREW_PREFIX}}/bin/lumo-desktop %u"
   end
