@@ -17,7 +17,7 @@ class Distrobox2 < Formula
   def install
     # Build the distrobox binary
     system "go", "build",
-           "-ldflags", "-s -w -X main.Version=#{version}",
+           "-ldflags", "-s -w -X github.com/89luca89/distrobox/pkg/version.Version=#{version}",
            "-o", "distrobox2",
            "./cmd/distrobox"
 
@@ -25,7 +25,7 @@ class Distrobox2 < Formula
   end
 
   test do
-    output = shell_output("#{bin}/distrobox2 --version")
-    assert_includes output, "distrobox"
+    output = shell_output("#{bin}/distrobox2 --help")
+    assert_match version.to_s, output
   end
 end
