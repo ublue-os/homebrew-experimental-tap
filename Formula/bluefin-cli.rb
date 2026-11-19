@@ -1,8 +1,8 @@
 class BluefinCli < Formula
   desc "Bluefin's CLI tool"
   homepage "https://github.com/tuna-os/bluefin-cli"
-  url "https://github.com/tuna-os/bluefin-cli/archive/refs/tags/v0.11.20.tar.gz"
-  sha256 "1a3d9012e124831726432693790ed4d84a4af8f2eccd8a275f997416c22d8d2d"
+  url "https://github.com/tuna-os/bluefin-cli/archive/refs/tags/v0.11.23.tar.gz"
+  sha256 "f593fb4d65cc819bc1b3211885d0fce36714e9c32287c05a459ad2d2ed4ab223"
   license "Apache-2.0"
   head "https://github.com/tuna-os/bluefin-cli.git", branch: "main"
 
