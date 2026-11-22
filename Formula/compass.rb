@@ -14,10 +14,10 @@ class Compass < Formula
   end
 
   bottle do
-    root_url "https://github.com/ublue-os/homebrew-experimental-tap/releases/download/compass-0.28.7"
-    rebuild 4
-    sha256 cellar: :any, arm64_linux:  "b84f2cd65a482b38729b41eb4ea76acca76578cb0de0a56ea3632b801894ffb0"
-    sha256 cellar: :any, x86_64_linux: "a85437ea6b6076c4187848cd829a7df0baa3b5c2aacd73bc9c4649f07430f0fb"
+    root_url "https://github.com/ublue-os/homebrew-experimental-tap/releases/download/compass-0.28.8"
+    rebuild 5
+    sha256 cellar: :any, arm64_linux:  "ab2ac47dd4a9e4b5e96f5be99c3f1b7d63611d5dfaa1bbaed02ec69497860a09"
+    sha256 cellar: :any, x86_64_linux: "c43da5a2ac678ccde8d921f7546877e88ef740f89daba36f8309fc76eaca8d6e"
   end
 
   depends_on "pkg-config" => :build
