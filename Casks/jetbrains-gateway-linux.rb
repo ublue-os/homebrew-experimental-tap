@@ -1,11 +1,11 @@
 cask "jetbrains-gateway-linux" do
-  arch arm: "aarch64", intel: "x86_64"
+  arch arm: "-aarch64"
 
   version "2026.3"
   sha256 arm64_linux:  "8423ff6bb1de487a8535c63c76a90905b851c772106a545a92e5b3be5eba02b3",
          x86_64_linux: "440b3961ddff85b3655895e310a691200961a46bb6bc2d711d9031773bdfa2b6"
 
-  url "https://download.jetbrains.com/idea/gateway/JetBrainsGateway-#{version}#{"-aarch64" if arch == "aarch64"}.tar.gz"
+  url "https://download.jetbrains.com/idea/gateway/JetBrainsGateway-#{version}#{arch}.tar.gz"
   name "JetBrains Gateway"
   desc "Connect to remote development environments with JetBrains IDEs"
   homepage "https://www.jetbrains.com/remote-development/gateway/"
