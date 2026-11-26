@@ -1,8 +1,8 @@
 cask "lumo-linux" do
   os linux: "linux"
 
-  version "0.5.9"
-  sha256 "57c2390f4140bfb5cd4437859b65684a68a63da476086ec4a653e4c1f993a906"
+  version "0.5.10"
+  sha256 "8a3a9683f3031f1585a27dd83ba1e8de19b563cb4d09b80292da8d7a38208a23"
 
   url "https://proton.me/download/lumo/linux/#{version}/Lumo-#{version}-1.x86_64.rpm"
   name "Lumo"
