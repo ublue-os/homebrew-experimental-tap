@@ -54,6 +54,7 @@ jobs:
     if: needs.discover.outputs.prs != '[]'
     strategy:
       fail-fast: false
+      max-parallel: 1
       matrix:
         pr: ${{ fromJson(needs.discover.outputs.prs) }}
     uses: ./.github/workflows/bump-ci.yml
