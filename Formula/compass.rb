@@ -25,7 +25,7 @@ class Compass < Formula
   depends_on "libxkbcommon"
   depends_on :linux
   depends_on "node"
-  depends_on "openssl@3"
+  depends_on "openssl@4"
 
   def install
     # The extension runtime bundle the engine refuses to run without.
