@@ -1,8 +1,8 @@
 cask "windsurf-linux" do
   os linux: "linux"
 
-  version "3.14.30833,a165b2eb0a68542b92a3c89cc68b4700e819a409"
-  sha256 "735f80f9a7851c043b7a19595a396a3f9352629aae388b1af5aa868064a93c6a"
+  version "3.15.14,cfa79668e1a5e000e036cea74fc23449b0aedec3-c16c32bf7d9d42345cd0c798c527a68e"
+  sha256 "6cd616eae9890237d2b77d0d410fc6f83151eacce0c862bfb707e2c5d9eac703"
 
   url "https://windsurf-stable.codeiumdata.com/linux-x64/stable/#{version.csv.second}/Devin-linux-x64-#{version.csv.first}.tar.gz"
   name "Windsurf (Devin)"
@@ -12,7 +12,11 @@ cask "windsurf-linux" do
   livecheck do
     url "https://windsurf-stable.codeium.com/api/update/linux-x64/stable/latest"
     strategy :json do |json|
-      "#{json["windsurfVersion"]},#{json["version"]}"
+      # The download directory is the commit hash plus a build suffix, so take it from the URL.
+      dir = json["url"]&.[](%r{/stable/([^/]+)/[^/]+$}, 1)
+      next if dir.blank? || json["windsurfVersion"].blank?
+
+      "#{json["windsurfVersion"]},#{dir}"
     end
   end
 
