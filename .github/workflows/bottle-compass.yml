@@ -43,9 +43,9 @@ jobs:
       matrix:
         include:
           - id: linux-x86_64
-            runner: ubuntu-24.04
+            runner: ubuntu-26.04
           - id: linux-arm64
-            runner: ubuntu-24.04-arm
+            runner: ubuntu-26.04-arm
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
