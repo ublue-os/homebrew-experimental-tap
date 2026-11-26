@@ -28,7 +28,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      # brew audit needs core to resolve bluefin-cli's go dependency
+      # brew audit needs core to resolve formula build dependencies (e.g. go)
       - name: Tap homebrew/core
         run: brew tap --force homebrew/core
 
